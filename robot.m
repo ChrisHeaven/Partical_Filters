@@ -233,7 +233,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
             end 
             botScan(flag) = botScan(flag) - botScan(min_index);
         end
-    botScan(min_index) = 0;
+        botScan(min_index) = 0;
     end
     %%
     
