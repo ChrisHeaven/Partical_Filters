@@ -222,16 +222,16 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         
         increase_number = ceil(scans / 4);
         for i = 1 : increase_number
-            changN = min_index + i;
-            if changN > scans
-                changN = changN - scans;
+            flag = min_index + i;
+            if flag > scans
+                flag = flag - scans;
             end 
-            botScan(changN) = botScan(changN) - botScan(min_index);
-            changN = min_index - i;
-            if changN < 1
-                changN = changN + scans; 
+            botScan(flag) = botScan(flag) - botScan(min_index);
+            flag = min_index - i;
+            if flag < 1
+                flag = flag + scans; 
             end 
-            botScan(changN) = botScan(changN) - botScan(min_index);
+            botScan(flag) = botScan(flag) - botScan(min_index);
         end
     botScan(min_index) = 0;
     end
