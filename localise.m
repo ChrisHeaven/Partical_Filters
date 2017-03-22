@@ -169,6 +169,27 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     % here they just turn in cicles as an example
     %turn = 0.5;
     %move = 2;
+
+    %%Solving hitting wall problem
+    [min_distance, min_index] = min (botScan);
+    if min_distance < 38.105 % 22 * 3 ^ (1/2)
+        %botScans = botScan;
+        
+        increase_number = ceil(scans / 4);
+        for i = 1 : increase_number
+            flag = min_index + i;
+            if flag > scans
+                flag = flag - scans;
+            end 
+            botScan(flag) = botScan(flag) - botScan(min_index);
+            flag = min_index - i;
+            if flag < 1
+                flag = flag + scans; 
+            end 
+            botScan(flag) = botScan(flag) - botScan(min_index);
+        end
+        botScan(min_index) = 0;
+    end
     
     if rand() < 0.76 % prefer to move in the maximum direction
         [max_distance, max_index] = max(botScan); 
