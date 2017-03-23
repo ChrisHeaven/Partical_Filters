@@ -64,35 +64,35 @@ for i = 1:num
 end
 
 % move_direct three steps to open area before ultrascan
-steps = 1;
-while (steps <= 3)
-    %.setScanConfig(generateScanConfig(, scans));
-    botScan = ultra_scan(scans); % get a scan from the real robot.
-    if rand() < 0.99 % most of the time move_direct in the maximum direction
-        [max_distance, max_index] = max(botScan); % find maximum possible distance
-        turning = (max_index - 1) * 2 * 180 / scans;% orientate towards the max distance
-        move = max_distance * 0.3;
-    else % some of the time move_direct in a random direction
-        index = randi(scans); 
-        turning = (index - 1) * 2 * 180/scans;
-        move= botScan(index) * 0.3;
-    end
-    % botScan
-    % max_index
-    % max_distance
-    % turning
-    
-    turn(turning,-1);
-    move_direct(move,1);
-   
-%     if .debug()
-%         hold off; % the drawMap() function will clear the drawing when hold is off
-%         .drawMap(); % drawMap() turns hold back on again, so you can draw the bots
-%         .drawBot(30,'g'); % draw robot with line length 30 and green
-%         drawnow;
+% steps = 1;
+% while (steps <= 3)
+%     %.setScanConfig(generateScanConfig(, scans));
+%     botScan = ultra_scan(scans); % get a scan from the real robot.
+%     if rand() < 0.99 % most of the time move_direct in the maximum direction
+%         [max_distance, max_index] = max(botScan); % find maximum possible distance
+%         turning = (max_index - 1) * 2 * 180 / scans;% orientate towards the max distance
+%         move = max_distance * 0.3;
+%     else % some of the time move_direct in a random direction
+%         index = randi(scans); 
+%         turning = (index - 1) * 2 * 180/scans;
+%         move= botScan(index) * 0.3;
 %     end
-    steps = steps + 1;
-end
+%     % botScan
+%     % max_index
+%     % max_distance
+%     % turning
+    
+%     turn(turning,-1);
+%     move_direct(move,1);
+   
+% %     if .debug()
+% %         hold off; % the drawMap() function will clear the drawing when hold is off
+% %         .drawMap(); % drawMap() turns hold back on again, so you can draw the bots
+% %         .drawBot(30,'g'); % draw robot with line length 30 and green
+% %         drawnow;
+% %     end
+%     steps = steps + 1;
+% end
 
 %% Localisation code
 maxNumOfIterations = 30;
@@ -219,25 +219,25 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     [min_distance, min_index] = min (botScan);
     if min_distance < 38.105 % 22 * 3 ^ (1/2)
         %botScans = botScan;
-        
-        increase_number = ceil(scans / 4);
+        botScan
+        increase_number = floor(scans / 4);
         for i = 1 : increase_number
             flag = min_index + i;
             if flag > scans
                 flag = flag - scans;
             end 
-            botScan(flag) = botScan(flag) - botScan(min_index);
+            botScan(flag) = 0 + 2*i;
             flag = min_index - i;
             if flag < 1
                 flag = flag + scans; 
             end 
-            botScan(flag) = botScan(flag) - botScan(min_index);
+            botScan(flag) = 0 + 2*i;
         end
         botScan(min_index) = 0;
     end
-    %%
+    botScan
     
-    if rand() < 0.76 % prefer to move_direct in the maximum direction
+    if rand() < 0.96 % prefer to move_direct in the maximum direction
         [max_distance, max_index] = max(botScan); 
         
         turning = (max_index - 1) * 2 * 180 / scans; % orientate towards the max distance
