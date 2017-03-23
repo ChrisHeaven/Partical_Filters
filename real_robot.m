@@ -36,10 +36,13 @@ mS =NXTMotor('A');
 %% Code for path searching
 %% setup code
 % you can modify the map to take account of your robots configuration space
-map = [0,0; 60,0; 60,45; 45,45; 45,59; 106,59; 106,105; 0,105];
-modifiedMap = map; % you need 000000000000z to do this modification yourself
+%map = [0,0; 60,0; 60,45; 45,45; 45,59; 106,59; 106,105; 0,105];
+map = [0,0; 65,0; 65,45; 40,45; 40,65; 110,65; 110,110; 0,110];
+modifiedMap = map; % you need to do this modification yourself
 
 botSim = BotSim(map,[0, 0, 0]);
+botSim.drawMap();
+drawnow;
 botSim.setMap(modifiedMap);
 adminKey = rand(1);
 OpenUltrasonic(USS);
@@ -52,7 +55,8 @@ target = targetPositions(1, :);
 % find the centre of the map
 mid_x = (max(map(:, 1)) + min(map(:, 1))) / 2;
 mid_y = (max(map(:, 2)) + min(map(:, 2))) / 2;
-scans = 6;
+
+scans = 10;
 
 % generate some random particles inside the map
 num = 600; % number of particles
@@ -81,10 +85,10 @@ end
 %     % max_index
 %     % max_distance
 %     % turning
-    
+%     
 %     turn(turning,-1);
 %     move_direct(move,1);
-   
+%    
 % %     if .debug()
 % %         hold off; % the drawMap() function will clear the drawing when hold is off
 % %         .drawMap(); % drawMap() turns hold back on again, so you can draw the bots
@@ -191,7 +195,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     %dis_4 = norm([x_y(1), x_y(2)] - [estimate_x_4, estimate_y_4])
     
     if mid_x < 66
-        convergence_threshold = mid_x / 160;
+        convergence_threshold = mid_x / 100;
     else
         convergence_threshold = mid_x / 180;
     end
@@ -203,7 +207,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         break;       % particles has converged so break out of while loop immediately before any movement
     end
     
-    %% Write code to take a percentage of your particles and respawn in randomised locations (important for robustness)	
+    %% Write code to take a percentage of your particles and respawn in randomised locations (important for robustness) 
     mutation_rate = 0.01;
     
     for i = 1:mutation_rate * num
@@ -217,9 +221,8 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     
     %%Solving hitting wall problem
     [min_distance, min_index] = min (botScan);
-    if min_distance < 38.105 % 22 * 3 ^ (1/2)
+    if min_distance < 23 % 22 * 3 ^ (1/2)
         %botScans = botScan;
-        botScan
         increase_number = floor(scans / 4);
         for i = 1 : increase_number
             flag = min_index + i;
@@ -235,13 +238,12 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         end
         botScan(min_index) = 0;
     end
-    botScan
     
     if rand() < 0.96 % prefer to move_direct in the maximum direction
         [max_distance, max_index] = max(botScan); 
         
         turning = (max_index - 1) * 2 * 180 / scans; % orientate towards the max distance
-        move = max_distance * 0.7 * rand(); % move_direct a random amount of the max distance, but never the entire distance
+        move = max_distance * 0.3 * rand(); % move_direct a random amount of the max distance, but never the entire distance
    
     else % some of the time move_direct in a random direction
         index = randi(scans); 
@@ -267,15 +269,15 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     
     %% Drawing
     % only draw if you are in debug mode or it will be slow during marking
-%     if .debug()
-%         hold off; % the drawMap() function will clear the drawing when hold is off
-%         .drawMap(); % drawMap() turns hold back on again, so you can draw the bots
+    if botSim.debug()
+        hold off; % the drawMap() function will clear the drawing when hold is off
+         botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
 %         .drawBot(30,'g'); % draw robot with line length 30 and green
-%         %for i =1:num
-%         %    particles(i).drawBot(3); %draw particle with line length 3 and default color
-%         %end
-%         drawnow;
-%     end
+        for i =1:num
+           particles(i).drawBot(3); %draw particle with line length 3 and default color
+        end
+        drawnow;
+    end
 end
 
 %% Initialise the map
@@ -409,7 +411,13 @@ turn(bot_angle,-1);% turn the robot to an angle which is close to 0 degree
 %.turn(bot_angle); 
 
 %% Path plan
+n = 0;
+moving = 0; % distance of moving
+turning = 0; % degree of this turning
+heading = 0; % the heading of car
+movingD = 0; % the turning data send to car
 while (arrived == 0)
+    n = n+1;
     min_dis = max(max(mapArray)) + 10;
     for i = -1:1
         for j = -1:1
@@ -418,7 +426,7 @@ while (arrived == 0)
                     if i == 0 && j == 0
                             continue;
                     else
-                        if mapArray(current_pos_x + i, current_pos_y + j) < min_dis % robot move_direct from big value towards small value
+                        if mapArray(current_pos_x + i, current_pos_y + j) < min_dis % robot move from big value towards small value
                             min_dis = mapArray(current_pos_x + i, current_pos_y + j);
                             next_pos_x = current_pos_x + i;
                             next_pos_y = current_pos_y + j;
@@ -436,70 +444,110 @@ while (arrived == 0)
     end
     min_dis;
 
-%% Waiting for check    
-%% 7.701 means 5 * 2 ^ 0.5
     degree = (next_pos_x - current_pos_x) / (next_pos_y - current_pos_y);
     if degree == 1 || degree == -1
         if next_pos_x - current_pos_x > 0 && next_pos_y - current_pos_y > 0
+            particles(300).turn(atan(degree)); % turn the real robot  
+            particles(300).move(7.071); % move the real robot
+            particles(300).turn(-atan(degree)); % turn back the real robot
             
-            turn(atan(degree),-1); % turn the real robot  
-            move_direct(7.071,1); % move_direct the real robot
-            turn(-atan(degree),-1); % turn back the real robot
-            
+            moving =  7.701;
+            turning = atan(degree);
+            movingD = turning - heading;
+            heading = turning;
+%             if turning != heading
+%                 movingD = turning - heading;
+%             else
+%                 movingD = 0;
+%             end
         else
             if next_pos_x - current_pos_x < 0 && next_pos_y - current_pos_y < 0
-                turn((atan(degree) + 180),-1); 
-                move_direct(7.071,1); 
-                turn((-atan(degree) - 180),-1);  
+                particles(300).turn(atan(degree) + pi); 
+                particles(300).move(7.071); 
+                particles(300).turn(-atan(degree) - pi); 
+                
+                moving =  7.701;
+                turning = atan(degree) + pi;
+                movingD = turning - heading;
+                heading = turning;
             else
                 if next_pos_x - current_pos_x > 0 && next_pos_y - current_pos_y < 0
-                    turn((atan(degree) + 180),-1); 
-                    move_direct(7.071,1);
-                    turn((-atan(degree) - 180),-1);  
+                    particles(300).turn(atan(degree) + pi); 
+                    particles(300).move(7.071);
+                    particles(300).turn(-atan(degree) - pi);  
+                    
+                    moving =  7.701;
+                    turning = atan(degree) + pi;
+                    movingD = turning - heading;
+                    heading = turning;
                 else
-                    turn(atan(degree),-1); 
-                    move_direct(7.071,1); 
-                    turn(-atan(degree),-1); 
+                    particles(300).turn(atan(degree)); 
+                    particles(300).move(7.071); 
+                    particles(300).turn(-atan(degree)); 
+                    
+                    moving =  7.701;
+                    turning = atan(degree);
+                    movingD = turning - heading;
+                    heading = turning;
                 end
             end
         end
     else
         if degree == 0
             if next_pos_y - current_pos_y < 0
-                turn((atan(degree) + 180),-1); 
-                move_direct(5,1); 
-                turn(-atan(degree) - 180, -1); 
+                particles(300).turn(atan(degree) + pi); 
+                particles(300).move(5); 
+                particles(300).turn(-atan(degree) - pi); 
+                
+                moving = 5;
+                turning = atan(degree) + pi;
+                movingD = turning - heading;
+                heading = turning;
             else
-                turn(atan(degree), -1); 
-                move_direct(5, 1); 
-                turn(-atan(degree), -1);  
+                particles(300).turn(atan(degree)); 
+                particles(300).move(5); 
+                particles(300).turn(-atan(degree));  
+                
+                moving = 5;
+                turning = atan(degree);
+                movingD = turning - heading;
+                heading = turning;
             end
         else
-            turn(atan(degree), -1);   
-            move_direct(5, 1); 
-            turn(-atan(degree), -1); 
+            particles(300).turn(atan(degree));   
+            particles(300).move(5); 
+            particles(300).turn(-atan(degree)); 
+            
+            moving = 5;
+            turning = atan(degree);
+            movingD = turning - heading;
+            heading = turning;
         end
     end
 
-%     if .debug()
-%         hold on; % the drawMap() function will clear the drawing when hold is off
-%         .drawMap(); % drawMap() turns hold back on again, so you can draw the bots
-%         .drawBot(3,'g'); % draw robot with line length 30 and green
-%         drawnow;
-%     end
+    veMove(n,1) = moving;
+    veMove(n, 2)= movingD / pi * 180;
+    veMove
+
+    if botSim.debug()
+        hold on; % the drawMap() function will clear the drawing when hold is off
+        particles(300).drawMap(); % drawMap() turns hold back on again, so you can draw the bots
+        particles(300).drawBot(3,'g'); % draw robot with line length 30 and green
+        drawnow;
+    end
 
     %max_score = 0;
     %candidate_pos_x = next_pos_x;
     %candidate_pos_y = next_pos_y;
-    %.setScanConfig(generateScanConfig(, 60));
-    %current_scan = .ultra_scan();
+    %botSim.setScanConfig(generateScanConfig(botSim, 60));
+    %current_scan = botSim.ultraScan();
     %for i = -1:1
     %    for j = -1:1
     %        if mapArray(candidate_pos_x + i, candidate_pos_y + j)
     %            particles(300).setBotPos([((candidate_pos_y + j - 1) * 5) ((candidate_pos_x + i - 1) * 5)]);
     %            particles(300).setBotAng(0)
     %            particles(300).setScanConfig(generateScanConfig(particles(300), 60));
-    %            dis = particles(300).ultra_scan();
+    %            dis = particles(300).ultraScan();
     %            new_score = 10 / sqrt(sum((dis - current_scan).^2));
     %            if new_score > max_score
     %                max_score = new_score;
@@ -515,5 +563,9 @@ while (arrived == 0)
 
     if min_dis == 10
         arrived = 1; % arrive at the target
+        for i = 1 : n
+            turn(veMove(i, 2));
+            move_direct(veMove(i, 1));
+        end    
     end
 end
