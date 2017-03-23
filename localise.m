@@ -10,7 +10,7 @@ botSim.setMap(modifiedMap);
 % find the centre of the map
 mid_x = (max(map(:, 1)) + min(map(:, 1))) / 2;
 mid_y = (max(map(:, 2)) + min(map(:, 2))) / 2;
-scans = 30;
+scans = 10;
 
 % generate some random particles inside the map
 num = 600; % number of particles
@@ -146,14 +146,16 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     %dis_4 = norm([x_y(1), x_y(2)] - [estimate_x_4, estimate_y_4])
     
     if mid_x < 66
-        convergence_threshold = mid_x / 160;
+        convergence_threshold = mid_x / 100;
     else
         convergence_threshold = mid_x / 180;
     end
 
     stdev_x = std(x_(1, :));
     stdev_y = std(y_(1, :));
-    
+
+    numberofMovingStep1 = n;
+
     if stdev_x < convergence_threshold && stdev_y < convergence_threshold
         break;       % particles has converged so break out of while loop immediately before any movement
     end
@@ -191,7 +193,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         botScan(min_index) = 0;
     end
     botScan
-    
+
     if rand() < 0.96 % prefer to move in the maximum direction
         [max_distance, max_index] = max(botScan); 
         turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
@@ -355,7 +357,13 @@ bot_angle = - angle_gap * 2 * pi/current_scans;
 botSim.turn(bot_angle); % turn the robot to an angle which is close to 0 degree
 
 %% Path plan
+n = 0;
+moving = 0; % distance of moving
+turning = 0; % degree of this turning
+heading = 0; % the heading of car
+movingD = 0; % the turning data send to car
 while (arrived == 0)
+    n = n+1;
     min_dis = max(max(mapArray)) + 10;
     for i = -1:1
         for j = -1:1
@@ -388,20 +396,45 @@ while (arrived == 0)
             botSim.turn(atan(degree)); % turn the real robot  
             botSim.move(7.071); % move the real robot
             botSim.turn(-atan(degree)); % turn back the real robot
+            
+            moving =  7.701;
+            turning = atan(degree);
+            movingD = turning - heading;
+            heading = turning;
+%             if turning != heading
+%                 movingD = turning - heading;
+%             else
+%                 movingD = 0;
+%             end
         else
             if next_pos_x - current_pos_x < 0 && next_pos_y - current_pos_y < 0
                 botSim.turn(atan(degree) + pi); 
                 botSim.move(7.071); 
-                botSim.turn(-atan(degree) - pi);  
+                botSim.turn(-atan(degree) - pi); 
+                
+                moving =  7.701;
+                turning = atan(degree) + pi;
+                movingD = turning - heading;
+                heading = turning;
             else
                 if next_pos_x - current_pos_x > 0 && next_pos_y - current_pos_y < 0
                     botSim.turn(atan(degree) + pi); 
                     botSim.move(7.071);
                     botSim.turn(-atan(degree) - pi);  
+                    
+                    moving =  7.701;
+                    turning = atan(degree) + pi;
+                    movingD = turning - heading;
+                    heading = turning;
                 else
                     botSim.turn(atan(degree)); 
                     botSim.move(7.071); 
                     botSim.turn(-atan(degree)); 
+                    
+                    moving =  7.701;
+                    turning = atan(degree);
+                    movingD = turning - heading;
+                    heading = turning;
                 end
             end
         end
@@ -411,18 +444,35 @@ while (arrived == 0)
                 botSim.turn(atan(degree) + pi); 
                 botSim.move(5); 
                 botSim.turn(-atan(degree) - pi); 
+                
+                moving = 5;
+                turning = atan(degree) + pi;
+                movingD = turning - heading;
+                heading = turning;
             else
                 botSim.turn(atan(degree)); 
                 botSim.move(5); 
                 botSim.turn(-atan(degree));  
+                
+                moving = 5;
+                turning = atan(degree);
+                movingD = turning - heading;
+                heading = turning;
             end
         else
             botSim.turn(atan(degree));   
             botSim.move(5); 
             botSim.turn(-atan(degree)); 
+            
+            moving = 5;
+            turning = atan(degree);
+            movingD = turning - heading;
+            heading = turning;
         end
     end
-
+    veMove(n,1) = moving;
+    veMove(n, 2)= movingD / pi * 180;
+    veMove
     if botSim.debug()
         hold on; % the drawMap() function will clear the drawing when hold is off
         botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
@@ -457,5 +507,6 @@ while (arrived == 0)
 
     if min_dis == 10
         arrived = 1; % arrive at the target
+        Extratime = numberofMovingStep1 * 8.75 + n * 12.65
     end
 end
