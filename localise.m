@@ -5,7 +5,6 @@ function [botSim] = localise(botSim,map,target)
 %% setup code
 % you can modify the map to take account of your robots configuration space
 modifiedMap = map; % you need to do this modification yourself
-
 botSim.setMap(modifiedMap);
 
 % find the centre of the map
@@ -23,31 +22,32 @@ for i = 1:num
 end
 
 % move three steps to open area before ultrascan
-steps = 1;
-while (steps <= 3)
-    botSim.setScanConfig(generateScanConfig(botSim, scans));
-    botScan = botSim.ultraScan(); % get a scan from the real robot.
-    if rand() < 0.99 % most of the time move in the maximum direction
-        [max_distance, max_index] = max(botScan); % find maximum possible distance
-        turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
-        move = max_distance * 0.3; 
-    else % some of the time move in a random direction
-        index = randi(scans); 
-        turn = (index - 1) * 2 * pi/scans;
-        move= botScan(index) * 0.3;
-    end
-    
-    botSim.turn(turn); % turn the real robot.  
-    botSim.move(move); % move the real robot. These movements are recorded for marking 
-
-    if botSim.debug()
-        hold off; % the drawMap() function will clear the drawing when hold is off
-        botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
-        botSim.drawBot(30,'g'); % draw robot with line length 30 and green
-        drawnow;
-    end
-    steps = steps + 1;
-end
+% steps = 1;
+% while (steps <= 3)
+%     botSim.setScanConfig(generateScanConfig(botSim, scans));
+%     botScan = botSim.ultraScan(); % get a scan from the real robot.
+%     if rand() < 0.99 % most of the time move in the maximum direction
+%         [max_distance, max_index] = max(botScan); % find maximum possible distance
+%         turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
+%         move = max_distance * 0.3; 
+%     else % some of the time move in a random direction
+%         index = randi(scans); 
+%         turn = (index - 1) * 2 * pi/scans;
+%         move= botScan(index) * 0.3;
+%     end
+%     
+%     botSim.turn(turn); % turn the real robot.  
+%     botSim.move(move); % move the real robot. These movements are recorded for marking 
+% 
+%     if botSim.debug()
+%         hold off; % the drawMap() function will clear the drawing when hold is off
+%         botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
+%         botSim.drawBot(30,'g'); % draw robot with line length 30 and green
+%         drawnow;
+%     end
+%     steps = steps + 1;
+%     pause(1);
+% end
 
 %% Localisation code
 maxNumOfIterations = 30;
@@ -158,7 +158,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         break;       % particles has converged so break out of while loop immediately before any movement
     end
     
-    %% Write code to take a percentage of your particles and respawn in randomised locations (important for robustness)	
+    %% Write code to take a percentage of your particles and respawn in randomised locations (important for robustness) 
     mutation_rate = 0.01;
     
     for i = 1:mutation_rate * num
@@ -169,29 +169,30 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     % here they just turn in cicles as an example
     %turn = 0.5;
     %move = 2;
-
+    
     %%Solving hitting wall problem
     [min_distance, min_index] = min (botScan);
     if min_distance < 38.105 % 22 * 3 ^ (1/2)
         %botScans = botScan;
-        
-        increase_number = ceil(scans / 4);
+        botScan
+        increase_number = floor(scans / 4);
         for i = 1 : increase_number
             flag = min_index + i;
             if flag > scans
                 flag = flag - scans;
             end 
-            botScan(flag) = botScan(flag) - botScan(min_index);
+            botScan(flag) = 0 + 2*i;
             flag = min_index - i;
             if flag < 1
                 flag = flag + scans; 
             end 
-            botScan(flag) = botScan(flag) - botScan(min_index);
+            botScan(flag) = 0 + 2*i;
         end
         botScan(min_index) = 0;
     end
+    botScan
     
-    if rand() < 0.76 % prefer to move in the maximum direction
+    if rand() < 0.96 % prefer to move in the maximum direction
         [max_distance, max_index] = max(botScan); 
         turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
         move = max_distance * 0.2 * rand(); % move a random amount of the max distance, but never the entire distance
@@ -457,5 +458,4 @@ while (arrived == 0)
     if min_dis == 10
         arrived = 1; % arrive at the target
     end
-end
 end
