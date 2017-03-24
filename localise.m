@@ -329,25 +329,6 @@ for i = 1:iterators(2)
     end
 end
 
-%sub_border_map = zeros(iterators(2), iterators(1));
-% for i = 1:iterators(2)
-%     for j = 1:iterators(1)
-%         if mapArray(i,j) ~= 0
-%             for h = -1:1
-%                 for k = -1:1
-%                     if i + h > 0 && j + k > 0 && i + h <= iterators(2) && j + k <= iterators(1) && border_map((i + h), (j + k)) == 1
-%                         sub_border_map(i, j) = 1;
-%                     end
-%                 end
-%             end
-%         end
-%         %mapArray(i,j) = mapArray(i,j) + one_num * 15;
-%         % if i == 1 && mapArray(1, j) ~= 0
-%         %     mapArray(1, j) = mapArray(1, j) + 3 * 15;
-%         % end
-%     end
-% end
-
 for i = 1:iterators(2)
     for j = 1:iterators(1)
         one_num = 0;
@@ -377,6 +358,45 @@ mapArray
 arrived = 0; % whether arrive at target or not 
 
 %% Set a particle at the position of real robot with 0 degree and take a new ultrascan
+% while (finished == 0)
+%     current_scans = 4;
+%     particles(300).setBotPos([estimate_x_2 estimate_y_2]);
+%     particles(300).setBotAng(0);
+%     particles(300).setScanConfig(generateScanConfig(particles(300), current_scans));
+%     dis = particles(300).ultraScan();
+%     botSim.setScanConfig(generateScanConfig(botSim, current_scans));
+%     current_dis = botSim.ultraScan();
+    
+%     %% Calculate the score of every direction of the real robot to calibrate it with the 0-degree particle
+%     for j = 1:current_scans
+%         real_dis = circshift(current_dis, j);
+%         sqrt(sum((dis - real_dis).^2))
+%         scores(1, j) = 10 / sqrt(sum((dis - real_dis).^2));
+%     end
+    
+%     compare_score = sort(scores, 'descend');
+%     if abs(10/compare_score(1) - 10/compare_score(2)) < 13
+%         botSim.setScanConfig(generateScanConfig(botSim, scans));
+%         botScan = botSim.ultraScan(); % get a scan from the real robot.
+           
+%         [max_distance, max_index] = max(botScan); % find maximum possible distance
+%         turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
+%         move = round(max_distance * 0.7) - mod(round(max_distance * 0.7), 5); 
+%         botSim.turn(turn); % turn the real robot.  
+%         botSim.move(move); % move the real robot. These movements are recorded for marking 
+        
+%         if botSim.debug()
+%             hold off; % the drawMap() function will clear the drawing when hold is off
+%             botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
+%             botSim.drawBot(30,'g'); % draw robot with line length 30 and green
+%             drawnow;
+%         end
+%         pause(0.13);
+%     else
+%         finished = 1;
+%     end
+% end
+
 current_scans = 4;
 particles(300).setBotPos([estimate_x_2 estimate_y_2]);
 particles(300).setBotAng(0);
@@ -553,7 +573,7 @@ while (arrived == 0)
     if min_dis == 10
         arrived = 1; % arrive at the target
         numberofMovingStep1
-        Extratime = numberofMovingStep1 * 4 + 4
+        Extratime = numberofMovingStep1 * 5 + 4 + size(veMove, 1) * 2
         %veMove
     end
 end

@@ -15,7 +15,7 @@ drawnow;
 %botSim.randomPose(10); %puts the robot in a random position at least 10cm away from a wall
 target = botSim.getRndPtInMap(10);  %gets random target.
 botSim.setBotPos(startPositions(i,:));
-%target = targetPositions(i,:);
+target = targetPositions(i,:);
 
 tic %starts timer
 
