@@ -13,7 +13,7 @@ mid_y = (max(map(:, 2)) + min(map(:, 2))) / 2;
 scans = 4;
 
 % generate some random particles inside the map
-num = 600; % number of particles
+num = 900; % number of particles
 particles(num, 1) = BotSim; % how to set up a vector of objects
 for i = 1:num
     particles(i) = BotSim(modifiedMap);  % each particle should use the same map as the botSim object
@@ -388,6 +388,7 @@ current_dis = botSim.ultraScan();
 %% Calculate the score of every direction of the real robot to calibrate it with the 0-degree particle
 for j = 1:current_scans
     real_dis = circshift(current_dis, j);
+    sqrt(sum((dis - real_dis).^2))
     scores(1, j) = 10 / sqrt(sum((dis - real_dis).^2));
 end
 

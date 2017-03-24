@@ -56,7 +56,7 @@ target = targetPositions(1, :);
 mid_x = (max(map(:, 1)) + min(map(:, 1))) / 2;
 mid_y = (max(map(:, 2)) + min(map(:, 2))) / 2;
 
-scans = 10;
+scans = 4;
 
 % generate some random particles inside the map
 num = 600; % number of particles
@@ -391,7 +391,7 @@ mapArray
 arrived = 0; % whether arrive at target or not 
 
 %% Set a particle at the position of real robot with 0 degree and take a new ultrascan
-current_scans = 360;
+current_scans = 4;
 particles(300).setBotPos([estimate_x_2 estimate_y_2]);
 particles(300).setBotAng(0);
 particles(300).setScanConfig(generateScanConfig(particles(300), current_scans));
