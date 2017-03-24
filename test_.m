@@ -12,7 +12,7 @@ botSim.drawMap();
 botSim.drawBot(3); % draws robot with direction indicator with a length 3
 %the length of the directin indicator does not matter, it just makes it
 %easy to see where the robot is pointing
-botSim.setScanConfig(botSim.generateScanConfig(4));
+botSim.setScanConfig(botSim.generateScanConfig(360));
 [distance crossingPoint]  = botSim.ultraScan() %perfoms simulated ultrasound scan
 botSim.drawScanConfig(); %draws current scan configuration
 botSim.drawBot(3);

@@ -197,7 +197,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     if rand() < 0.76 % prefer to move in the maximum direction
         [max_distance, max_index] = max(botScan); 
         turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
-        move = max_distance * 0.4 * rand(); % move a random amount of the max distance, but never the entire distance
+        move = max_distance * 0.3 * rand(); % move a random amount of the max distance, but never the entire distance
     else % some of the time move in a random direction
         index = randi(scans); 
         turn = (index - 1) * 2 * pi/scans;
@@ -339,7 +339,7 @@ mapArray
 arrived = 0; % whether arrive at target or not 
 
 %% Set a particle at the position of real robot with 0 degree and take a new ultrascan
-current_scans = 30;
+current_scans = 4;
 particles(300).setBotPos([estimate_x_2 estimate_y_2]);
 particles(300).setBotAng(0);
 particles(300).setScanConfig(generateScanConfig(particles(300), current_scans));
@@ -509,7 +509,7 @@ while (arrived == 0)
     if min_dis == 10
         arrived = 1; % arrive at the target
         numberofMovingStep1
-        Extratime = numberofMovingStep1 * 4 + 52.65
+        Extratime = numberofMovingStep1 * 4 + 4
         %veMove
     end
 end
