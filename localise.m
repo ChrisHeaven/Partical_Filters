@@ -303,13 +303,14 @@ for i = 1:iterators(2)
                 end
             end
         end
-        mapArray(i,j) = mapArray(i,j) + zero_num * 15;
+        mapArray(i,j) = mapArray(i,j) + zero_num * 25;
         if i == 1 && mapArray(1, j) ~= 0
-            mapArray(1, j) = mapArray(1, j) + 3 * 15;
+            mapArray(1, j) = mapArray(1, j) + 3 * 25;
         end
     end
 end
 
+sub_border_map = zeros(iterators(2), iterators(1));
 for i = 1:iterators(2)
     for j = 1:iterators(1)
         one_num = 0;
@@ -318,11 +319,47 @@ for i = 1:iterators(2)
                 for k = -1:1
                     if i + h > 0 && j + k > 0 && i + h <= iterators(2) && j + k <= iterators(1) && border_map((i + h), (j + k)) == 1
                         one_num = one_num + 1;
+                        sub_border_map(i, j) = 1;
                     end
                 end
             end
         end
-        mapArray(i,j) = mapArray(i,j) + one_num * 10;
+        mapArray(i,j) = mapArray(i,j) + one_num * 15;
+    end
+end
+
+%sub_border_map = zeros(iterators(2), iterators(1));
+% for i = 1:iterators(2)
+%     for j = 1:iterators(1)
+%         if mapArray(i,j) ~= 0
+%             for h = -1:1
+%                 for k = -1:1
+%                     if i + h > 0 && j + k > 0 && i + h <= iterators(2) && j + k <= iterators(1) && border_map((i + h), (j + k)) == 1
+%                         sub_border_map(i, j) = 1;
+%                     end
+%                 end
+%             end
+%         end
+%         %mapArray(i,j) = mapArray(i,j) + one_num * 15;
+%         % if i == 1 && mapArray(1, j) ~= 0
+%         %     mapArray(1, j) = mapArray(1, j) + 3 * 15;
+%         % end
+%     end
+% end
+
+for i = 1:iterators(2)
+    for j = 1:iterators(1)
+        one_num = 0;
+        if mapArray(i,j) ~= 0
+            for h = -1:1
+                for k = -1:1
+                    if i + h > 0 && j + k > 0 && i + h <= iterators(2) && j + k <= iterators(1) && sub_border_map((i + h), (j + k)) == 1
+                        one_num = one_num + 1;
+                    end
+                end
+            end
+        end
+        mapArray(i,j) = mapArray(i,j) + one_num * 5;
     end
 end
 
