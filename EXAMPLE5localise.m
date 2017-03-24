@@ -13,7 +13,7 @@ botSim = BotSim(map,[0,0,0]);  %sets up a botSim object a map, and debug mode on
 botSim.drawMap();
 drawnow;
 %botSim.randomPose(10); %puts the robot in a random position at least 10cm away from a wall
-%target = botSim.getRndPtInMap(10);  %gets random target.
+target = botSim.getRndPtInMap(10);  %gets random target.
 botSim.setBotPos(startPositions(i,:));
 target = targetPositions(i,:);
 

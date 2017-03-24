@@ -174,7 +174,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     
     %%Solving hitting wall problem
     [min_distance, min_index] = min (botScan);
-    if min_distance < 23 % 22 * 3 ^ (1/2)
+    if min_distance < 30 % 22 * 3 ^ (1/2)
         %botScans = botScan;
         botScan
         increase_number = floor(scans / 4);
@@ -287,6 +287,7 @@ while (finished == 0)
         finished = 1;
     end
 end
+mapArray
 
 %% Increase the value of the map at the border of map
 border_map = zeros(iterators(2), iterators(1));
@@ -303,9 +304,9 @@ for i = 1:iterators(2)
                 end
             end
         end
-        mapArray(i,j) = mapArray(i,j) + zero_num * 25;
+        mapArray(i,j) = mapArray(i,j) + zero_num * 35;
         if i == 1 && mapArray(1, j) ~= 0
-            mapArray(1, j) = mapArray(1, j) + 3 * 25;
+            mapArray(1, j) = mapArray(1, j) + 3 * 35;
         end
     end
 end
@@ -324,7 +325,7 @@ for i = 1:iterators(2)
                 end
             end
         end
-        mapArray(i,j) = mapArray(i,j) + one_num * 15;
+        mapArray(i,j) = mapArray(i,j) + one_num * 25;
     end
 end
 
@@ -359,7 +360,7 @@ for i = 1:iterators(2)
                 end
             end
         end
-        mapArray(i,j) = mapArray(i,j) + one_num * 5;
+        mapArray(i,j) = mapArray(i,j) + one_num * 15;
     end
 end
 
@@ -400,6 +401,8 @@ moving = 0; % distance of moving
 turning = 0; % degree of this turning
 heading = 0; % the heading of car
 movingD = 0; % the turning data send to car
+visited = zeros(iterators(2), iterators(1));
+
 while (arrived == 0)
     n = n+1;
     min_dis = max(max(mapArray)) + 10;
@@ -412,11 +415,13 @@ while (arrived == 0)
                     else
                         if mapArray(current_pos_x + i, current_pos_y + j) < min_dis % robot move from big value towards small value
                             min_dis = mapArray(current_pos_x + i, current_pos_y + j);
+                            %target_dis = abs(current_pos_x + i - target_array_x) + abs(current_pos_y + j - target_array_y);
                             next_pos_x = current_pos_x + i;
                             next_pos_y = current_pos_y + j;
                         else
-                            if mapArray(current_pos_x + i, current_pos_y + j) == min_dis && rand() < 0.5
+                            if mapArray(current_pos_x + i, current_pos_y + j) == min_dis && visited(current_pos_x, current_pos_y) ~= 1  %rand() < 0.5
                                 min_dis = mapArray(current_pos_x + i, current_pos_y + j);
+                                %target_dis = abs(current_pos_x + i - target_array_x) + abs(current_pos_y + j - target_array_y);
                                 next_pos_x = current_pos_x + i;
                                 next_pos_y = current_pos_y + j;
                             end
@@ -427,7 +432,8 @@ while (arrived == 0)
         end
     end
     min_dis;
-
+    visited(current_pos_x, current_pos_y) = 1;
+    
     degree = (next_pos_x - current_pos_x) / (next_pos_y - current_pos_y);
     if degree == 1 || degree == -1
         if next_pos_x - current_pos_x > 0 && next_pos_y - current_pos_y > 0
