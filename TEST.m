@@ -22,5 +22,25 @@ mR =NXTMotor('B');
 mS =NXTMotor('A');
 
 %% Testing
+OpenUltrasonic(USS);
+ m = ultra_scan(4)
+
+% pause(0.1);
+% for i = 1 :15
+%     m(i) = GetUltrasonic(USS);
+% end
+% m
+CloseSensor(USS);
  %turn(180,-1);
- move_direct(200,1)
+% move_direct(200,1)
+
+% mS.Power = 25 ;
+% mS.TachoLimit = 360 / 10 * 9;
+% mS.Stop('brake');
+% mS.SendToNXT();
+% mS.WaitFor();
+% 
+% mS.Power = -50 ;
+% mS.TachoLimit = 360;
+% mS.SendToNXT();
+% mS.WaitFor();

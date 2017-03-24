@@ -4,13 +4,13 @@ function [botSim] = localise(botSim,map,target)
 
 %% setup code
 % you can modify the map to take account of your robots configuration space
-modifiedMap = [0,0; 65,0; 65,45; 40,45; 40,65; 110,65; 110,110; 0,110]; % you need to do this modification yourself
+modifiedMap = map; % you need to do this modification yourself
 botSim.setMap(modifiedMap);
 
 % find the centre of the map
 mid_x = (max(map(:, 1)) + min(map(:, 1))) / 2;
 mid_y = (max(map(:, 2)) + min(map(:, 2))) / 2;
-scans = 10;
+scans = 4;
 
 % generate some random particles inside the map
 num = 600; % number of particles
@@ -29,7 +29,7 @@ end
 %     if rand() < 0.99 % most of the time move in the maximum direction
 %         [max_distance, max_index] = max(botScan); % find maximum possible distance
 %         turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
-%         move = max_distance * 0.3; 
+%         move = max_distance * 0.5; 
 %     else % some of the time move in a random direction
 %         index = randi(scans); 
 %         turn = (index - 1) * 2 * pi/scans;
@@ -46,7 +46,7 @@ end
 %         drawnow;
 %     end
 %     steps = steps + 1;
-%     pause(1);
+%     pause(0.3);
 % end
 
 %% Localisation code
@@ -151,12 +151,12 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         convergence_threshold = mid_x / 180;
     end
 
-    stdev_x = std(x_(1, :));
-    stdev_y = std(y_(1, :));
+    stdev_x = std(x_(1, :))
+    stdev_y = std(y_(1, :))
 
     numberofMovingStep1 = n;
 
-    if stdev_x < convergence_threshold && stdev_y < convergence_threshold
+    if stdev_x < convergence_threshold || stdev_y < convergence_threshold
         break;       % particles has converged so break out of while loop immediately before any movement
     end
     
@@ -194,14 +194,15 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     end
     botScan
 
-    if rand() < 0.96 % prefer to move in the maximum direction
+    if rand() < 0.76 % prefer to move in the maximum direction
         [max_distance, max_index] = max(botScan); 
         turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
-        move = max_distance * 0.3 * rand(); % move a random amount of the max distance, but never the entire distance
+        move = max_distance * 0.4 * rand(); % move a random amount of the max distance, but never the entire distance
     else % some of the time move in a random direction
         index = randi(scans); 
         turn = (index - 1) * 2 * pi/scans;
-        move= botScan(index) * 0.2;
+        %move = botScan(index) * 0.3;
+        move = 0;
     end
     
     botSim.turn(turn); % turn the real robot.  
@@ -220,9 +221,9 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         hold off; % the drawMap() function will clear the drawing when hold is off
         botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
         botSim.drawBot(30,'g'); % draw robot with line length 30 and green
-        %for i =1:num
-        %    particles(i).drawBot(3); %draw particle with line length 3 and default color
-        %end
+%         for i =1:num
+%            particles(i).drawBot(3); %draw particle with line length 3 and default color
+%         end
         drawnow;
     end
 end
@@ -507,7 +508,8 @@ while (arrived == 0)
 
     if min_dis == 10
         arrived = 1; % arrive at the target
-        Extratime = numberofMovingStep1 * 4.75 + 52.65
-        veMove
+        numberofMovingStep1
+        Extratime = numberofMovingStep1 * 4 + 52.65
+        %veMove
     end
 end
