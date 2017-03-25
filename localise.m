@@ -13,7 +13,7 @@ mid_y = (max(map(:, 2)) + min(map(:, 2))) / 2;
 scans = 4;
 
 % generate some random particles inside the map
-num = 900; % number of particles
+num = 600; % number of particles
 particles(num, 1) = BotSim; % how to set up a vector of objects
 for i = 1:num
     particles(i) = BotSim(modifiedMap);  % each particle should use the same map as the botSim object
@@ -54,6 +54,10 @@ maxNumOfIterations = 30;
 n = 0;
 converged =0; % the filter has not converged yet
 
+for i = 1:num
+    past_score(i, 1) = 1/num;
+end
+
 while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     n = n+1; % increment the current number of iterations
     botSim.setScanConfig(generateScanConfig(botSim, scans));
@@ -65,6 +69,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     
     %% Write code for updating your particles scans
     for i = 1:num
+        %past_score(i, 1) = 1/num;
         if particles(i).insideMap() == 1
             particales_scan(:, i) = particles(i).ultraScan();
 %             par_scan = particales_scan(:, i);
@@ -100,26 +105,30 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
   
     for i = 1:num
         score(i, 1) = score(i, 1) / sum_score(:, 1);
+        score(i, 1) = 0.3*past_score(i, 1) + 0.7*score(i, 1);
+        past_score(i, 1) = score(i, 1);
     end
+
+
     
     [weight, index] = sort(score, 'descend');
     
-    for i = 1:num / 2
-        score_half(i, 1) = weight(i);
+    for i = 1:num / 5
+        score_half(i, 1) = weight(i)^2;
     end
     sum_score_half = sum(score_half);
     
     %% Write code for resampling your particles
-    particles_pos = zeros(2, num / 2);
+    particles_pos = zeros(2, num / 5);
     
-    for i = 1:num / 2
+    for i = 1:num / 5
         particles_pos(:, i) = getBotPos(particles(index(i)));
     end
     
     count = 1;
     
-    for i = 1:num / 2
-            particles_num(i, :) = fix(weight(index(i)) * num * (1 / sum_score_half));
+    for i = 1:num / 5
+            particles_num(i, :) = fix(weight(index(i))^2 * num * (1 / sum_score_half));
             new_pos_x = (particles_pos(1, i) - 2.5 + rand(1, particles_num(i, :)) * 5);
             new_pos_y = (particles_pos(2, i) - 2.5 + rand(1, particles_num(i, :)) * 5);
         
@@ -165,7 +174,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     %dis_4 = norm([x_y(1), x_y(2)] - [estimate_x_4, estimate_y_4])
     
     if mid_x < 66
-        convergence_threshold = mid_x / 80;
+        convergence_threshold = mid_x / 90;
     else
         convergence_threshold = mid_x / 180;
     end
@@ -193,7 +202,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     
     %%Solving hitting wall problem
     [min_distance, min_index] = min (botScan);
-    if min_distance < 23 % 22 * 3 ^ (1/2)
+    if min_distance < 31 % 22 * 3 ^ (1/2)
         %botScans = botScan;
         botScan
         increase_number = floor(scans / 4);
@@ -238,7 +247,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     if rand() < 0.76 % prefer to move in the maximum direction
         [max_distance, max_index] = max(botScan); 
         turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
-        move = max_distance * 0.3 * rand(); % move a random amount of the max distance, but never the entire distance
+        move = max_distance * 0.2 * rand(); % move a random amount of the max distance, but never the entire distance
     else % some of the time move in a random direction
         index = randi(scans); 
         turn = (index - 1) * 2 * pi/scans;
@@ -262,9 +271,9 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         hold off; % the drawMap() function will clear the drawing when hold is off
         botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
         botSim.drawBot(30,'g'); % draw robot with line length 30 and green
-        for i =1:num
-           particles(i).drawBot(3); %draw particle with line length 3 and default color
-        end
+%         for i =1:num
+%            particles(i).drawBot(3); %draw particle with line length 3 and default color
+%         end
         drawnow;
     end
 end
@@ -280,7 +289,7 @@ mapArray = zeros(iterators); % preallocate for speed
 target_array_x = round((target(2) - limsMin(2)) / res) + 1;
 target_array_y = round((target(1) - limsMin(1)) / res) + 1;
 
-hold on;
+%hold off;
 for i = 1:iterators(2)
     for j = 1:iterators(1)
         testPos = limsMin + [j-1 i-1] * res;
@@ -389,7 +398,7 @@ end
 current_pos_x = round((estimate_y_2 - limsMin(2))/ res) + 1
 current_pos_y = round((estimate_x_2 - limsMin(1))/ res) + 1
 %mapArray(current_pos_x, current_pos_y) = max(max(mapArray)) + 10;
-
+hold on
 plot(round(estimate_x_2 / res) * res, round(estimate_y_2 / res) * res, '*');
 plot(target(1), target(2), '*');
 
@@ -582,7 +591,7 @@ while (arrived == 0)
     
     
     if botSim.debug()
-        hold on; % the drawMap() function will clear the drawing when hold is off
+        hold on; % the drawMap() function will not clear the drawing when hold is off
         botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
         botSim.drawBot(3,'g'); % draw robot with line length 30 and green
         drawnow;
