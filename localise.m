@@ -174,7 +174,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     %dis_4 = norm([x_y(1), x_y(2)] - [estimate_x_4, estimate_y_4])
     
     if mid_x < 66
-        convergence_threshold = mid_x / 90;
+        convergence_threshold = mid_x / 100;
     else
         convergence_threshold = mid_x / 180;
     end
@@ -199,6 +199,11 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     % here they just turn in cicles as an example
     %turn = 0.5;
     %move = 2;
+    
+    [backup_distance, backup_index] = max(botScan); 
+        
+    backup_turn = (backup_index - 1) * 2 * 180 / scans;
+    backup_move = backup_distance * 0.3;
     
     %%Solving hitting wall problem
     [min_distance, min_index] = min (botScan);
@@ -255,14 +260,20 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         move = 0;
     end
     
+    turned(n)  = turn;
+    if checkTurn(turned)
+        turn = backup_turn;
+        move = backup_move;
+    end
+
     botSim.turn(turn); % turn the real robot.  
     botSim.move(move); % move the real robot. These movements are recorded for marking 
     for i =1:num % for all the particles. 
         particles(i).turn(turn); % turn the particle in the same way as the real robot
         particles(i).move(move); % move the particle in the same way as the real robot
-        %if particles(i).insideMap() == 0
-        %    particles(i).randomPose(0);
-        %end
+        if particles(i).insideMap() == 0
+           particles(i).randomPose(0);
+        end
     end
     
     %% Drawing
@@ -271,9 +282,9 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         hold off; % the drawMap() function will clear the drawing when hold is off
         botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
         botSim.drawBot(30,'g'); % draw robot with line length 30 and green
-%         for i =1:num
-%            particles(i).drawBot(3); %draw particle with line length 3 and default color
-%         end
+        for i =1:num
+           particles(i).drawBot(3); %draw particle with line length 3 and default color
+        end
         drawnow;
     end
 end
@@ -587,7 +598,7 @@ while (arrived == 0)
     end
     veMove(n,1) = moving;
     veMove(n, 2)= movingD / pi * 180;
-    veMove
+%     veMove
     
     
     if botSim.debug()
@@ -625,9 +636,9 @@ while (arrived == 0)
     if min_dis == 10
         arrived = 1; % arrive at the target
         numberofMovingStep1
-        Extratime = numberofMovingStep1 * 7 + 4 + size(veMove, 1) * 2
-        veMove(:,2);
-        veMove1 = evaluatePath(veMove(:,2),veMove(:,1));
+        Extratime = numberofMovingStep1 * 7 + 4 + size(veMove, 1) * 1
+%         veMove(:,2);
+%         veMove1 = evaluatePath(veMove(:,2),veMove(:,1));
         %veMove
     end
 end
