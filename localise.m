@@ -58,15 +58,34 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     n = n+1; % increment the current number of iterations
     botSim.setScanConfig(generateScanConfig(botSim, scans));
     botScan = botSim.ultraScan(); %get a scan from the real robot.
+%     border = [15; 15; 15; 15];
+%     for i = 1:size(botScan)
+%         botScan(i) = botScan(i) - 15;
+%     end
     
     %% Write code for updating your particles scans
     for i = 1:num
         if particles(i).insideMap() == 1
             particales_scan(:, i) = particles(i).ultraScan();
-
+%             par_scan = particales_scan(:, i);
+%             
+%         for i = 1:size(botScan)
+%             par_scan(i) = par_scan(i) - 15;
+%         end
+% 
+%         particales_scan(:, i) = par_scan;
+%         
     %% Write code for scoring your particles    
             for j = 1:scans
                 weight = circshift(particales_scan(:, i), j);
+%                 weight1 = weight - botScan;
+%                 for dire = 1 : 4
+%                     if (abs(weight1(dire) < 3))
+%                         %weight1(i) = 0;
+%                         weight1(dire) = rand(1);
+%                     end
+%                 end
+ 
                 score(i, j) = 10 / sqrt(sum((weight - botScan).^2));
             end
         else
@@ -214,7 +233,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     %         move = 0;
     %     end
     end
-    botScan
+    %botScan
 
     if rand() < 0.76 % prefer to move in the maximum direction
         [max_distance, max_index] = max(botScan); 
@@ -559,7 +578,9 @@ while (arrived == 0)
     end
     veMove(n,1) = moving;
     veMove(n, 2)= movingD / pi * 180;
- 
+    veMove
+    
+    
     if botSim.debug()
         hold on; % the drawMap() function will clear the drawing when hold is off
         botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
@@ -595,7 +616,9 @@ while (arrived == 0)
     if min_dis == 10
         arrived = 1; % arrive at the target
         numberofMovingStep1
-        Extratime = numberofMovingStep1 * 5 + 4 + size(veMove, 1) * 2
+        Extratime = numberofMovingStep1 * 7 + 4 + size(veMove, 1) * 2
+        veMove(:,2)
+        veMove1 = evaluatePath(veMove(:,2),veMove(:,1))
         %veMove
     end
 end

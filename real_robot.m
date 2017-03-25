@@ -37,7 +37,7 @@ mS =NXTMotor('A');
 %% setup code
 % you can modify the map to take account of your robots configuration space
 %map = [0,0; 60,0; 60,45; 45,45; 45,59; 106,59; 106,105; 0,105];
-map = [0,0; 65,0; 65,45; 40,45; 40,65; 110,65; 110,110; 0,110];
+map = [0,0; 65,0; 65,45; 40,45; 40,65; 111,65; 111,110; 0,110];
 modifiedMap = map; % you need to do this modification yourself
 
 botSim = BotSim(map,[0, 0, 0]);
@@ -59,7 +59,7 @@ mid_y = (max(map(:, 2)) + min(map(:, 2))) / 2;
 scans = 4;
 
 % generate some random particles inside the map
-num = 600; % number of particles
+num = 900; % number of particles
 particles(num, 1) = BotSim; % how to set up a vector of objects
 for i = 1:num
     particles(i) = BotSim(modifiedMap);  % each particle should use the same map as the  object
@@ -116,6 +116,14 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     %% Write code for scoring your particles    
             for j = 1:scans
                 weight = circshift(particales_scan(:, i), j);
+%                 weight1 = weight - botScan;
+%                 for dire = 1 : 4
+%                     if (abs(weight1(dire) < 3))
+%                         %weight1(i) = 0;
+%                         weight1(dire) = rand(1);
+%                     end
+%                 end
+ 
                 score(i, j) = 10 / sqrt(sum((weight - botScan).^2));
             end
         else
@@ -195,7 +203,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     %dis_4 = norm([x_y(1), x_y(2)] - [estimate_x_4, estimate_y_4])
     
     if mid_x < 66
-        convergence_threshold = mid_x / 100;
+        convergence_threshold = mid_x / 60;
     else
         convergence_threshold = mid_x / 180;
     end
@@ -219,6 +227,11 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     %turn = 0.5;
     %move_direct = 2;
     
+    [backup_distance, backup_index] = max(botScan); 
+        
+    backup_turn = (backup_index - 1) * 2 * 180 / scans;
+    backup_move = backup_distance * 0.3;
+    
     %%Solving hitting wall problem
     [min_distance, min_index] = min (botScan);
     if min_distance < 23 % 22 * 3 ^ (1/2)
@@ -239,7 +252,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         botScan(min_index) = 0;
     end
     
-    if rand() < 0.96 % prefer to move_direct in the maximum direction
+    if rand() < 0.76 % prefer to move_direct in the maximum direction
         [max_distance, max_index] = max(botScan); 
         
         turning = (max_index - 1) * 2 * 180 / scans; % orientate towards the max distance
@@ -249,13 +262,17 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         index = randi(scans); 
         
         turning = (index - 1) * 2 * 180/scans;
-        move= botScan(index) * 0.2;
-        
+        %move = botScan(index) * 0.2;
+        move = 0;
     end
-    
+    turned(n)  = turning;
+    if checkTurn(turned)
+        turning = backup_turn;
+        move = backup_move;
+    end
     turn(turning,-1);
     move_direct(move,1);
-  
+   
     %.turn(turn); % turn the real robot.  
     %.move_direct(move_direct); % move_direct the real robot. These movements are recorded for marking 
     
@@ -357,8 +374,26 @@ for i = 1:iterators(2)
         end
         mapArray(i,j) = mapArray(i,j) + zero_num * 15;
         if i == 1 && mapArray(1, j) ~= 0
-            mapArray(1, j) = mapArray(1, j) + 3 * 15;
+            mapArray(1, j) = mapArray(1, j) + 3 * 35;
         end
+    end
+end
+
+sub_border_map = zeros(iterators(2), iterators(1));
+for i = 1:iterators(2)
+    for j = 1:iterators(1)
+        one_num = 0;
+        if mapArray(i,j) ~= 0
+            for h = -1:1
+                for k = -1:1
+                    if i + h > 0 && j + k > 0 && i + h <= iterators(2) && j + k <= iterators(1) && border_map((i + h), (j + k)) == 1
+                        one_num = one_num + 1;
+                        sub_border_map(i, j) = 1;
+                    end
+                end
+            end
+        end
+        mapArray(i,j) = mapArray(i,j) + one_num * 25;
     end
 end
 
@@ -368,13 +403,13 @@ for i = 1:iterators(2)
         if mapArray(i,j) ~= 0
             for h = -1:1
                 for k = -1:1
-                    if i + h > 0 && j + k > 0 && i + h <= iterators(2) && j + k <= iterators(1) && border_map((i + h), (j + k)) == 1
+                    if i + h > 0 && j + k > 0 && i + h <= iterators(2) && j + k <= iterators(1) && sub_border_map((i + h), (j + k)) == 1
                         one_num = one_num + 1;
                     end
                 end
             end
         end
-        mapArray(i,j) = mapArray(i,j) + one_num * 10;
+        mapArray(i,j) = mapArray(i,j) + one_num * 15;
     end
 end
 
@@ -407,6 +442,7 @@ end
 
 [scores(1, 1), angle_gap] = max(scores(1, :));
 bot_angle = - angle_gap * 2 * 180/current_scans;
+
 turn(bot_angle,-1);% turn the robot to an angle which is close to 0 degree
 %.turn(bot_angle); 
 
@@ -416,6 +452,8 @@ moving = 0; % distance of moving
 turning = 0; % degree of this turning
 heading = 0; % the heading of car
 movingD = 0; % the turning data send to car
+visited = zeros(iterators(2), iterators(1));
+
 while (arrived == 0)
     n = n+1;
     min_dis = max(max(mapArray)) + 10;
@@ -431,7 +469,7 @@ while (arrived == 0)
                             next_pos_x = current_pos_x + i;
                             next_pos_y = current_pos_y + j;
                         else
-                            if mapArray(current_pos_x + i, current_pos_y + j) == min_dis && rand() < 0.5
+                            if mapArray(current_pos_x + i, current_pos_y + j) == min_dis && visited(current_pos_x, current_pos_y) ~= 1 && abs(i) + abs(j) == 1   % rand() < 0.5
                                 min_dis = mapArray(current_pos_x + i, current_pos_y + j);
                                 next_pos_x = current_pos_x + i;
                                 next_pos_y = current_pos_y + j;
@@ -443,6 +481,7 @@ while (arrived == 0)
         end
     end
     min_dis;
+    visited(current_pos_x, current_pos_y) = 1;
 
     degree = (next_pos_x - current_pos_x) / (next_pos_y - current_pos_y);
     if degree == 1 || degree == -1
@@ -527,7 +566,6 @@ while (arrived == 0)
 
     veMove(n,1) = moving;
     veMove(n, 2)= movingD / pi * 180;
-    veMove
 
     if botSim.debug()
         hold on; % the drawMap() function will clear the drawing when hold is off
@@ -560,12 +598,14 @@ while (arrived == 0)
 
     current_pos_x = next_pos_x;
     current_pos_y = next_pos_y;
-
+    
     if min_dis == 10
         arrived = 1; % arrive at the target
-        for i = 1 : n
-            turn(veMove(i, 2));
-            move_direct(veMove(i, 1));
+        veMove1 = evaluatePath(veMove(:,2),veMove(:,1));
+        len = size(veMove1);
+        for i = 1 : len(1)
+            turn(veMove1(i, 1),-1);
+            move_direct(veMove1(i, 2),1);
         end    
     end
 end

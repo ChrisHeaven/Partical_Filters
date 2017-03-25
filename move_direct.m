@@ -5,31 +5,31 @@ function flag = move_direct(distance,dirction) %ditance in cm; dirction 1:forwar
 
     global mL;
     global mR;
-     
-    MaxTurn = 100;
-    NumberTurn = 0;
-    wheel=13.82;
+    if distance ~= 0
+        MaxTurn = 100;
+        NumberTurn = 0;
+        wheel=13.82;
     
-    mL.ActionAtTachoLimit = 'Brake';
-    mR.ActionAtTachoLimit = 'Brake';
+        mL.ActionAtTachoLimit = 'Brake';
+        mR.ActionAtTachoLimit = 'Brake';
     
-    n=round(distance/wheel*360)
+        n=round(distance/wheel*360);
     
-    mL.Power = 50*dirction;
-    mR.Power = 50*dirction;
+        mL.Power = 60*dirction;
+        mR.Power = 60*dirction;
     
 %     mL.TachoLimit = MaxTurn;
 %     mR.TachoLimit = MaxTurn;
-    mL.TachoLimit = n;
-    mR.TachoLimit = n;    
+        mL.TachoLimit = n;
+        mR.TachoLimit = n;    
    
 %     NumberTurn = n / MaxTurn;
     
-     mL.SendToNXT();
-     mR.SendToNXT();  
+        mL.SendToNXT();
+        mR.SendToNXT();  
      
-     mL.WaitFor();
-     mR.WaitFor();
+        mL.WaitFor();
+        mR.WaitFor();
     
 %     for i=1: NumberTurn;   
 %         mL.SendToNXT();
@@ -42,4 +42,5 @@ function flag = move_direct(distance,dirction) %ditance in cm; dirction 1:forwar
 %             break;
 %         end
 %      end  
+    end
 end

@@ -6,7 +6,12 @@ function [bot_scan] = ultra_scan(resolution)
 	for i = 2:resolution
 		turn_sensor( n , 1);
 %         pause(0.03);
-       bot_scan(i, :) = GetUltrasonic(SENSOR_2);      
+        dis = GetUltrasonic(SENSOR_2);
+        if dis  == -1;
+            bot_scan(i, :) = GetUltrasonic(SENSOR_2); 
+        else
+            bot_scan(i, :) = dis;
+        end
     end
    %turn_sensor(n, 1);
    % turn_sensor(360,-1);
