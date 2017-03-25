@@ -165,7 +165,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     %dis_4 = norm([x_y(1), x_y(2)] - [estimate_x_4, estimate_y_4])
     
     if mid_x < 66
-        convergence_threshold = mid_x / 100;
+        convergence_threshold = mid_x / 80;
     else
         convergence_threshold = mid_x / 180;
     end
@@ -233,7 +233,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     %         move = 0;
     %     end
     end
-    %botScan
+    botScan
 
     if rand() < 0.76 % prefer to move in the maximum direction
         [max_distance, max_index] = max(botScan); 
@@ -262,9 +262,9 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         hold off; % the drawMap() function will clear the drawing when hold is off
         botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
         botSim.drawBot(30,'g'); % draw robot with line length 30 and green
-%         for i =1:num
-%            particles(i).drawBot(3); %draw particle with line length 3 and default color
-%         end
+        for i =1:num
+           particles(i).drawBot(3); %draw particle with line length 3 and default color
+        end
         drawnow;
     end
 end
@@ -617,8 +617,8 @@ while (arrived == 0)
         arrived = 1; % arrive at the target
         numberofMovingStep1
         Extratime = numberofMovingStep1 * 7 + 4 + size(veMove, 1) * 2
-        veMove(:,2)
-        veMove1 = evaluatePath(veMove(:,2),veMove(:,1))
+        veMove(:,2);
+        veMove1 = evaluatePath(veMove(:,2),veMove(:,1));
         %veMove
     end
 end
