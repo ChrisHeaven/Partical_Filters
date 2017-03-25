@@ -72,25 +72,10 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         %past_score(i, 1) = 1/num;
         if particles(i).insideMap() == 1
             particales_scan(:, i) = particles(i).ultraScan();
-%             par_scan = particales_scan(:, i);
-%             
-%         for i = 1:size(botScan)
-%             par_scan(i) = par_scan(i) - 15;
-%         end
-% 
-%         particales_scan(:, i) = par_scan;
-%         
+
     %% Write code for scoring your particles    
             for j = 1:scans
-                weight = circshift(particales_scan(:, i), j);
-%                 weight1 = weight - botScan;
-%                 for dire = 1 : 4
-%                     if (abs(weight1(dire) < 3))
-%                         %weight1(i) = 0;
-%                         weight1(dire) = rand(1);
-%                     end
-%                 end
- 
+                weight = circshift(particales_scan(:, i), j); 
                 score(i, j) = 10 / sqrt(sum((weight - botScan).^2));
             end
         else
@@ -112,6 +97,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
 
     
     [weight, index] = sort(score, 'descend');
+    best_particle = index(1);
     
     for i = 1:num / 5
         score_half(i, 1) = weight(i)^2;
@@ -162,6 +148,12 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     estimate_x_2 = mean(x_(1, :));
     estimate_y_2 = mean(y_(1, :));
 
+    particles_pos_(:, 1) = getBotPos(particles(best_particle));
+    estimate_x_4 = particles_pos_(1, 1);
+    estimate_y_4 = particles_pos_(2, 1);
+
+    diff_dis = norm([estimate_x_2, estimate_y_2] - [estimate_x_4, estimate_y_4])
+
     % another way of estimate the position of real robot
     %for i = 1:num / 5
     %    particles_pos_(:, i) = getBotPos(particles(i));
@@ -184,7 +176,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
 
     numberofMovingStep1 = n;
 
-    if stdev_x < convergence_threshold || stdev_y < convergence_threshold
+    if (stdev_x < convergence_threshold || stdev_y < convergence_threshold) && diff_dis < 5
         break;       % particles has converged so break out of while loop immediately before any movement
     end
     
@@ -282,9 +274,9 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         hold off; % the drawMap() function will clear the drawing when hold is off
         botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
         botSim.drawBot(30,'g'); % draw robot with line length 30 and green
-        for i =1:num
-           particles(i).drawBot(3); %draw particle with line length 3 and default color
-        end
+        % for i =1:num
+        %    particles(i).drawBot(3); %draw particle with line length 3 and default color
+        % end
         drawnow;
     end
 end
@@ -348,7 +340,7 @@ while (finished == 0)
         finished = 1;
     end
 end
-mapArray
+%mapArray
 
 %% Increase the value of the map at the border of map
 border_map = zeros(iterators(2), iterators(1));
@@ -469,7 +461,7 @@ current_dis = botSim.ultraScan();
 %% Calculate the score of every direction of the real robot to calibrate it with the 0-degree particle
 for j = 1:current_scans
     real_dis = circshift(current_dis, j);
-    sqrt(sum((dis - real_dis).^2))
+    % sqrt(sum((dis - real_dis).^2))
     scores(1, j) = 10 / sqrt(sum((dis - real_dis).^2));
 end
 
