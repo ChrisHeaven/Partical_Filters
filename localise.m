@@ -357,9 +357,9 @@ for i = 1:iterators(2)
                 end
             end
         end
-        mapArray(i,j) = mapArray(i,j) + zero_num * 35;
+        mapArray(i,j) = mapArray(i,j) + zero_num * 45;
         if i == 1 && mapArray(1, j) ~= 0
-            mapArray(1, j) = mapArray(1, j) + 3 * 35;
+            mapArray(1, j) = mapArray(1, j) + 3 * 45;
         end
     end
 end
@@ -378,6 +378,24 @@ for i = 1:iterators(2)
                 end
             end
         end
+        mapArray(i,j) = mapArray(i,j) + one_num * 35;
+    end
+end
+
+sub_border_map_2 = zeros(iterators(2), iterators(1));
+for i = 1:iterators(2)
+    for j = 1:iterators(1)
+        one_num = 0;
+        if mapArray(i,j) ~= 0
+            for h = -1:1
+                for k = -1:1
+                    if i + h > 0 && j + k > 0 && i + h <= iterators(2) && j + k <= iterators(1) && sub_border_map((i + h), (j + k)) == 1
+                        one_num = one_num + 1;
+                        sub_border_map_2(i, j) = 1;
+                    end
+                end
+            end
+        end
         mapArray(i,j) = mapArray(i,j) + one_num * 25;
     end
 end
@@ -388,7 +406,7 @@ for i = 1:iterators(2)
         if mapArray(i,j) ~= 0
             for h = -1:1
                 for k = -1:1
-                    if i + h > 0 && j + k > 0 && i + h <= iterators(2) && j + k <= iterators(1) && sub_border_map((i + h), (j + k)) == 1
+                    if i + h > 0 && j + k > 0 && i + h <= iterators(2) && j + k <= iterators(1) && sub_border_map_2((i + h), (j + k)) == 1
                         one_num = one_num + 1;
                     end
                 end
@@ -405,6 +423,20 @@ hold on
 plot(round(estimate_x_2 / res) * res, round(estimate_y_2 / res) * res, '*');
 plot(target(1), target(2), '*');
 
+for i = 1:iterators(2)
+    for j = 1:iterators(1)
+        % testPos = limsMin + [j-1 i-1] * res;
+        % mapArray(i,j) = botSim.pointInsideMap(testPos);
+        if mapArray(i,j)
+            %plot(testPos(1),testPos(2),'o');%inside map
+            x_gap = abs(i - target_array_x);
+            y_gap = abs(j - target_array_y);
+            if 0 <= x_gap && x_gap <= 1 && 0 <= y_gap && y_gap <= 1
+                mapArray(i,j) = 10 + 10;
+            end
+        end
+    end
+end
 mapArray(target_array_x, target_array_y) = 10; % give target the minimum value of 10
 mapArray
 
@@ -628,7 +660,7 @@ while (arrived == 0)
     if min_dis == 10
         arrived = 1; % arrive at the target
         numberofMovingStep1
-        Extratime = numberofMovingStep1 * 7 + 4 + size(veMove, 1) * 1
+        Extratime = numberofMovingStep1 * 7 + 4 + size(veMove, 1) * 0.5
 %         veMove(:,2);
 %         veMove1 = evaluatePath(veMove(:,2),veMove(:,1));
         %veMove
