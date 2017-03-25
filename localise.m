@@ -174,7 +174,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     
     %%Solving hitting wall problem
     [min_distance, min_index] = min (botScan);
-    if min_distance < 30 % 22 * 3 ^ (1/2)
+    if min_distance < 23 % 22 * 3 ^ (1/2)
         %botScans = botScan;
         botScan
         increase_number = floor(scans / 4);
@@ -191,6 +191,28 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
             botScan(flag) = 0 + 2*i;
         end
         botScan(min_index) = 0;
+        
+    %     if rand() < 0.96 % prefer to move in the maximum direction
+    %         [max_distance, max_index] = max(botScan); 
+    %         turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
+    %         move = max_distance * 0.6 * rand(); % move a random amount of the max distance, but never the entire distance
+    %     else % some of the time move in a random direction
+    %         index = randi(scans); 
+    %         turn = (index - 1) * 2 * pi/scans;
+    %         %move = botScan(index) * 0.3;
+    %         move = 0;
+    %     end
+    % else
+    %     if rand() < 0.76 % prefer to move in the maximum direction
+    %         [max_distance, max_index] = max(botScan); 
+    %         turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
+    %         move = max_distance * 0.3 * rand(); % move a random amount of the max distance, but never the entire distance
+    %     else % some of the time move in a random direction
+    %         index = randi(scans); 
+    %         turn = (index - 1) * 2 * pi/scans;
+    %         %move = botScan(index) * 0.3;
+    %         move = 0;
+    %     end
     end
     botScan
 
@@ -440,7 +462,7 @@ while (arrived == 0)
                             next_pos_x = current_pos_x + i;
                             next_pos_y = current_pos_y + j;
                         else
-                            if mapArray(current_pos_x + i, current_pos_y + j) == min_dis && visited(current_pos_x, current_pos_y) ~= 1  %rand() < 0.5
+                            if mapArray(current_pos_x + i, current_pos_y + j) == min_dis && visited(current_pos_x, current_pos_y) ~= 1 && abs(i) + abs(j) == 1%rand() < 0.5
                                 min_dis = mapArray(current_pos_x + i, current_pos_y + j);
                                 %target_dis = abs(current_pos_x + i - target_array_x) + abs(current_pos_y + j - target_array_y);
                                 next_pos_x = current_pos_x + i;
