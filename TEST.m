@@ -8,6 +8,7 @@ global USS;     %UltraSound Sensor
 global mS;      %motor of Sensor
 global mR;      %Right motor
 global mL;      %Left motor
+global sensorT;
 
 %global cD;      %Angle of Sensor
 %global dir;     %Direction of the Sensor
@@ -22,16 +23,24 @@ mR =NXTMotor('B');
 mS =NXTMotor('A');
 
 %% Testing
+sensorT = -1;
 OpenUltrasonic(USS);
-%   m = ultra_scan(4)
-
+   m = ultra_scan(4)
+   m = ultra_scan(4);
+% move_direct(5,1);
+% 
+% speedUp(5,1);
 % pause(0.1);
-% for i = 1 :15
-%     m(i) = GetUltrasonic(USS);
+% for i = 1 :10
+%     sensorT = mod(i ,2);
+% %     m(i) = GetUltrasonic(USS);
+%     m = ultra_scan(4)
+%     n(:,i) = m;
 % end
+% n
 % m
-CloseSensor(USS);
-%  turn(0,-1);
+% CloseSensor(USS);
+%   turn(135,-1);
 %   move_direct(0,1)
 
 % mS.Power = 25 ;

@@ -1,10 +1,17 @@
 function [bot_scan] = ultra_scan(resolution)
+global sensorT;
+sensorT = sensorT * -1;
+if sensorT == 1
+   dir = 1;
+else
+   dir = -1;
+end    
 %% turn after scan
     pause(0.1);
     bot_scan(:,1) =  GetUltrasonic(SENSOR_2); 
     n = round(360/resolution);
 	for i = 2:resolution
-		turn_sensor( n , 1);
+		turn_sensor( n ,dir);
 %         pause(0.03);
         dis = GetUltrasonic(SENSOR_2);
         if dis  == -1;
@@ -13,9 +20,12 @@ function [bot_scan] = ultra_scan(resolution)
             bot_scan(i, :) = dis;
         end
     end
+    if dir == -1
+        bot_scan = flipud(bot_scan);
+    end    
    %turn_sensor(n, 1);
    % turn_sensor(360,-1);
-   turn_sensor_back(resolution);
+   %turn_sensor_back(resolution);
 %    
 %%    scan while turning
 %     mS = NXTMotor('A'); 

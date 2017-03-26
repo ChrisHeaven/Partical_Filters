@@ -1,3 +1,7 @@
+clf;        %clears figures
+clc;        %clears console
+clear;      %clears workspace
+
 COM_CloseNXT all %prepares workspace
 h = COM_OpenNXT(); %look for USB devices
 COM_SetDefaultNXT(h); %sets default handle
@@ -8,7 +12,9 @@ global USS;     %UltraSound Sensor
 global mS;      %motor of Sensor
 global mR;      %Right motor
 global mL;      %Left motor
+global sensorT;
 
+sensorT = -1;
 %global cD;      %Angle of Sensor
 %global dir;     %Direction of the Sensor
 %dir = 1;        %Initialize direction set to right
@@ -59,7 +65,7 @@ mid_y = (max(map(:, 2)) + min(map(:, 2))) / 2;
 scans = 4;
 
 % generate some random particles inside the map
-num = 900; % number of particles
+num = 600; % number of particles
 particles(num, 1) = BotSim; % how to set up a vector of objects
 for i = 1:num
     particles(i) = BotSim(modifiedMap);  % each particle should use the same map as the  object
@@ -103,8 +109,13 @@ maxNumOfIterations = 30;
 n = 0;
 converged = 0; % the filter has not converged yet
 
+for i = 1:num
+    past_score(i, 1) = 1/num;
+end
+
 while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     n = n + 1; % increment the current number of iterations
+    
     %.setScanConfig(generateScanConfig(, scans));
     botScan = ultra_scan(scans); %get a scan from the real robot.
     
@@ -138,25 +149,28 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
   
     for i = 1:num
         score(i, 1) = score(i, 1) / sum_score(:, 1);
+        score(i, 1) = 0.3*past_score(i, 1) + 0.7*score(i, 1);
+        past_score(i, 1) = score(i, 1);
     end
     
     [weight, index] = sort(score, 'descend');
+    best_particle = index(1);
     
-    for i = 1:num / 2
+    for i = 1:num / 5
         score_half(i, 1) = weight(i);
     end
     sum_score_half = sum(score_half);
     
     %% Write code for resampling your particles
-    particles_pos = zeros(2, num / 2);
+    particles_pos = zeros(2, num / 5);
     
-    for i = 1:num / 2
+    for i = 1:num / 5
         particles_pos(:, i) = getBotPos(particles(index(i)));
     end
     
     count = 1;
     
-    for i = 1:num / 2
+    for i = 1:num / 5
             particles_num(i, :) = fix(weight(index(i)) * num * (1 / sum_score_half));
             new_pos_x = (particles_pos(1, i) - 2.5 + rand(1, particles_num(i, :)) * 5);
             new_pos_y = (particles_pos(2, i) - 2.5 + rand(1, particles_num(i, :)) * 5);
@@ -190,6 +204,12 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     end
     estimate_x_2 = mean(x_(1, :));
     estimate_y_2 = mean(y_(1, :));
+    
+    particles_pos_(:, 1) = getBotPos(particles(best_particle));
+    estimate_x_4 = particles_pos_(1, 1);
+    estimate_y_4 = particles_pos_(2, 1);
+
+    diff_dis = norm([estimate_x_2, estimate_y_2] - [estimate_x_4, estimate_y_4])
 
     % another way of estimate the position of real robot
     %for i = 1:num / 5
@@ -203,7 +223,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     %dis_4 = norm([x_y(1), x_y(2)] - [estimate_x_4, estimate_y_4])
     
     if mid_x < 66
-        convergence_threshold = mid_x / 60;
+        convergence_threshold = mid_x / 100;
     else
         convergence_threshold = mid_x / 180;
     end
@@ -256,7 +276,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         [max_distance, max_index] = max(botScan); 
         
         turning = (max_index - 1) * 2 * 180 / scans; % orientate towards the max distance
-        move = max_distance * 0.3 * rand(); % move_direct a random amount of the max distance, but never the entire distance
+        move = max_distance * 0.2 * rand(); % move_direct a random amount of the max distance, but never the entire distance
    
     else % some of the time move_direct in a random direction
         index = randi(scans); 
@@ -279,9 +299,9 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     for i =1:num % for all the particles. 
         particles(i).turn(turning); % turn the particle in the same way as the real robot
         particles(i).move(move); % move_direct the particle in the same way as the real robot
-        %if particles(i).insideMap() == 0
-        %    particles(i).randomPose(0);
-        %end
+        if particles(i).insideMap() == 0
+           particles(i).randomPose(0);
+        end
     end
     
     %% Drawing
@@ -308,7 +328,7 @@ mapArray = zeros(iterators); % preallocate for speed
 target_array_x = round((target(2) - limsMin(2)) / res) + 1;
 target_array_y = round((target(1) - limsMin(1)) / res) + 1;
 
-hold on;
+hold off;
 for i = 1:iterators(2)
     for j = 1:iterators(1)
         testPos = limsMin + [j-1 i-1] * res;
@@ -372,9 +392,9 @@ for i = 1:iterators(2)
                 end
             end
         end
-        mapArray(i,j) = mapArray(i,j) + zero_num * 15;
+        mapArray(i,j) = mapArray(i,j) + zero_num * 45;
         if i == 1 && mapArray(1, j) ~= 0
-            mapArray(1, j) = mapArray(1, j) + 3 * 35;
+            mapArray(1, j) = mapArray(1, j) + 3 * 45;
         end
     end
 end
@@ -393,6 +413,24 @@ for i = 1:iterators(2)
                 end
             end
         end
+        mapArray(i,j) = mapArray(i,j) + one_num * 35;
+    end
+end
+
+sub_border_map_2 = zeros(iterators(2), iterators(1));
+for i = 1:iterators(2)
+    for j = 1:iterators(1)
+        one_num = 0;
+        if mapArray(i,j) ~= 0
+            for h = -1:1
+                for k = -1:1
+                    if i + h > 0 && j + k > 0 && i + h <= iterators(2) && j + k <= iterators(1) && sub_border_map((i + h), (j + k)) == 1
+                        one_num = one_num + 1;
+                        sub_border_map_2(i, j) = 1;
+                    end
+                end
+            end
+        end
         mapArray(i,j) = mapArray(i,j) + one_num * 25;
     end
 end
@@ -403,7 +441,7 @@ for i = 1:iterators(2)
         if mapArray(i,j) ~= 0
             for h = -1:1
                 for k = -1:1
-                    if i + h > 0 && j + k > 0 && i + h <= iterators(2) && j + k <= iterators(1) && sub_border_map((i + h), (j + k)) == 1
+                    if i + h > 0 && j + k > 0 && i + h <= iterators(2) && j + k <= iterators(1) && sub_border_map_2((i + h), (j + k)) == 1
                         one_num = one_num + 1;
                     end
                 end
@@ -418,7 +456,23 @@ current_pos_y = round((estimate_x_2 - limsMin(1))/ res) + 1
 %mapArray(current_pos_x, current_pos_y) = max(max(mapArray)) + 10;
 
 plot(round(estimate_x_2 / res) * res, round(estimate_y_2 / res) * res, '*');
+hold on;
 plot(target(1), target(2), '*');
+
+for i = 1:iterators(2)
+    for j = 1:iterators(1)
+        % testPos = limsMin + [j-1 i-1] * res;
+        % mapArray(i,j) = botSim.pointInsideMap(testPos);
+        if mapArray(i,j)
+            %plot(testPos(1),testPos(2),'o');%inside map
+            x_gap = abs(i - target_array_x);
+            y_gap = abs(j - target_array_y);
+            if 0 <= x_gap && x_gap <= 1 && 0 <= y_gap && y_gap <= 1
+                mapArray(i,j) = 10 + 10;
+            end
+        end
+    end
+end
 
 mapArray(target_array_x, target_array_y) = 10; % give target the minimum value of 10
 mapArray
@@ -432,6 +486,7 @@ particles(300).setBotAng(0);
 particles(300).setScanConfig(generateScanConfig(particles(300), current_scans));
 dis = particles(300).ultraScan();
 %.setScanConfig(generateScanConfig(, current_scans));
+
 current_dis = ultra_scan(current_scans);
 
 %% Calculate the score of every direction of the real robot to calibrate it with the 0-degree particle
@@ -605,7 +660,8 @@ while (arrived == 0)
         len = size(veMove1);
         for i = 1 : len(1)
             turn(veMove1(i, 1),-1);
-            move_direct(veMove1(i, 2),1);
-        end    
+            speedUp(veMove1(i, 2),1);
+        end  
+        NXT_PlayTone(440, 500);
     end
 end
