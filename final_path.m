@@ -35,24 +35,27 @@ for i = 1:move_size
         else
             sum_move = sum_move - move(i, 2);
         end
-        
-        if sum_move > 0
-            sum_turn = previous_turn;
-        else
-            sum_turn = previous_turn + 180;
-            sum_move = sum_move*(-1);
-        end
+
 % 
 %         if first == 0
 %             special = 1;
 %             backup_sum_turn = sum_turn;
 %             backup_sum_move = sum_move;
 %         else
-            route(first, 1) = sum_turn;
-            route(first, 2) = sum_move;
+
 %         end
 
     else
+        if count ~= 0
+            if sum_move > 0
+                sum_turn = previous_turn;
+            else
+                sum_turn = previous_turn + 180;
+                sum_move = sum_move*(-1);
+            end
+            route(first, 1) = sum_turn;
+            route(first, 2) = sum_move;
+        end
         flag = 0;
         count = 0;
 %         route_(size(route, 1) + 1, 1) = move(i, 1);

@@ -199,7 +199,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     
     %%Solving hitting wall problem
     [min_distance, min_index] = min (botScan);
-    if min_distance < 23 % 22 * 3 ^ (1/2)
+    if min_distance < 31 % 22 * 3 ^ (1/2)
         %botScans = botScan;
         botScan
         increase_number = floor(scans / 4);
@@ -684,6 +684,6 @@ while (arrived == 0)
 %         [c ind]=setdiff(final_move(:, 2), zero_);
 %         final_move = final_move(sort(ind))
         
-        Extratime = numberofMovingStep1 * 5 + 4 + size(final_move, 1) * 1.5
+        Extratime = numberofMovingStep1 * 5 + 4 + size(final, 1) * 2
     end
 end
