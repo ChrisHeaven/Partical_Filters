@@ -274,9 +274,9 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         hold off; % the drawMap() function will clear the drawing when hold is off
         botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
         botSim.drawBot(30,'g'); % draw robot with line length 30 and green
-        for i =1:num
-           particles(i).drawBot(3); %draw particle with line length 3 and default color
-        end
+%         for i =1:num
+%            particles(i).drawBot(3); %draw particle with line length 3 and default color
+%         end
         drawnow;
     end
 end
@@ -422,7 +422,17 @@ current_pos_y = round((estimate_x_2 - limsMin(1))/ res) + 1
 hold off;
 plot(round(estimate_x_2 / res) * res, round(estimate_y_2 / res) * res, '*');
 hold on;
+if botSim.debug()
+    %hold off; % the drawMap() function will clear the drawing when hold is off
+    botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
+    botSim.drawBot(30,'g'); % draw robot with line length 30 and green
+    %for i =1:num
+    %   particles(i).drawBot(3); %draw particle with line length 3 and default color
+    %end
+    drawnow;
+end
 plot(target(1), target(2), '*');
+
 
 for i = 1:iterators(2)
     for j = 1:iterators(1)
@@ -660,10 +670,20 @@ while (arrived == 0)
 
     if min_dis == 10
         arrived = 1; % arrive at the target
+        
         numberofMovingStep1
-        Extratime = numberofMovingStep1 * 7 + 4 + size(veMove, 1) * 0.5
         veMove(:,2);
-        veMove1 = evaluatePath(veMove(:,2),veMove(:,1));
-        veMove
+        veMove1 = evaluatePath(veMove(:,2),veMove(:,1))
+        
+        final_move = final_path(veMove1);
+        final(:, 1) = final_move(find(final_move(:, 1) ~= 0));
+        final(:, 2) = final_move(find(final_move(:, 2) ~= 0), 2);
+        final
+%         zero_ = [0];
+%         [c ind]=setdiff(final_move(:, 1), zero_);
+%         [c ind]=setdiff(final_move(:, 2), zero_);
+%         final_move = final_move(sort(ind))
+        
+        Extratime = numberofMovingStep1 * 5 + 4 + size(final_move, 1) * 1.5
     end
 end

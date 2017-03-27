@@ -1,7 +1,7 @@
 function [path] = evaluatePath(turning, moving)   % direction 1:turn right, -1:turn left
 heading = find(turning ~= 0);
 Size = size(heading);
-counter = Size(1)
+counter = Size(1);
 move = 0;
 
 for i = 1 : counter 
