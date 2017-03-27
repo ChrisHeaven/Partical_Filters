@@ -20,6 +20,17 @@ for i = 1:move_size
             sum_move = sum_move - move(i, 2);
         end
 
+        if i == move_size
+            if sum_move > 0
+                sum_turn = previous_turn;
+            else
+                sum_turn = previous_turn + 180;
+                sum_move = sum_move*(-1);
+            end
+            route(first, 1) = sum_turn;
+            route(first, 2) = sum_move;
+        end
+
     else
         if count ~= 0
             if sum_move > 0

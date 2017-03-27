@@ -480,7 +480,7 @@ mapArray
 arrived = 0; % whether arrive at target or not 
 
 %% Set a particle at the position of real robot with 0 degree and take a new ultrascan
-current_scans = 4;
+current_scans = 12;
 particles(300).setBotPos([estimate_x_2 estimate_y_2]);
 particles(300).setBotAng(0);
 particles(300).setScanConfig(generateScanConfig(particles(300), current_scans));
@@ -657,10 +657,15 @@ while (arrived == 0)
     if min_dis == 10
         arrived = 1; % arrive at the target
         veMove1 = evaluatePath(veMove(:,2),veMove(:,1));
-        len = size(veMove1);
+        final_move = final_path(veMove1);
+%         final(:, 1) = final_move(find(final_move(:, 1) ~= 0));
+%         final(:, 2) = final_move(find(final_move(:, 2) ~= 0), 2);
+%         final
+        final = evaluatePath(final_move(:,1), final_move(:,2))
+        len = size(final);
         for i = 1 : len(1)
-            turn(veMove1(i, 1),-1);
-            speedUp(veMove1(i, 2),1);
+            turn(final(i, 1),-1);
+            speedUp(final(i, 2),1);
         end  
         NXT_PlayTone(440, 500);
     end

@@ -60,13 +60,21 @@ end
 
 while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     n = n+1; % increment the current number of iterations
-    botSim.setScanConfig(generateScanConfig(botSim, scans));
-    botScan = botSim.ultraScan(); %get a scan from the real robot.
+    %get a scan from the real robot.
 %     border = [15; 15; 15; 15];
 %     for i = 1:size(botScan)
 %         botScan(i) = botScan(i) - 15;
 %     end
-    
+    if n == 1
+        botSim.setScanConfig(generateScanConfig(botSim, 8));
+        botScan = botSim.ultraScan();
+%         [backup_distance, backup_index] = max(botScan); 
+        botSim.setScanConfig(generateScanConfig(botSim, scans));
+        botScan = botSim.ultraScan();
+    else
+        botSim.setScanConfig(generateScanConfig(botSim, scans));
+        botScan = botSim.ultraScan();
+    end 
     %% Write code for updating your particles scans
     for i = 1:num
         %past_score(i, 1) = 1/num;
@@ -197,6 +205,24 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     backup_turn = (backup_index - 1) * 2 * 180 / scans;
     backup_move = backup_distance * 0.3;
     
+    danger = 0;
+    if botScan(1) + botScan(3) > botScan(2) + botScan(4) && botScan(1) + botScan(3) > 105 && botScan(1) + botScan(3) < 115
+        if botScan(2) + botScan(4) > 38 && botScan(2) + botScan(4) < 47
+            botScan(2) = 33;
+            botScan(4) = 33;
+            danger = 1;
+        end
+    else
+        if botScan(2) + botScan(4) > botScan(1) + botScan(3) && botScan(2) + botScan(4) > 105 && botScan(2) + botScan(4) < 115
+            if botScan(1) + botScan(3) > 38 && botScan(1) + botScan(3) < 47
+                botScan(1) = 33;
+                botScan(3) = 33;
+                danger = 1;
+            end
+        end
+    end
+    
+    
     %%Solving hitting wall problem
     [min_distance, min_index] = min (botScan);
     if min_distance < 31 % 22 * 3 ^ (1/2)
@@ -241,15 +267,22 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     end
     botScan
 
-    if rand() < 0.76 % prefer to move in the maximum direction
+    
+    if danger == 1
         [max_distance, max_index] = max(botScan); 
         turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
-        move = max_distance * 0.2 * rand(); % move a random amount of the max distance, but never the entire distance
-    else % some of the time move in a random direction
-        index = randi(scans); 
-        turn = (index - 1) * 2 * pi/scans;
-        %move = botScan(index) * 0.3;
-        move = 0;
+        move = max_distance * 0.6 * rand();
+    else
+        if rand() < 0.76 % prefer to move in the maximum direction
+            [max_distance, max_index] = max(botScan); 
+            turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
+            move = max_distance * 0.2 * rand(); % move a random amount of the max distance, but never the entire distance
+        else % some of the time move in a random direction
+            index = randi(scans); 
+            turn = (index - 1) * 2 * pi/scans;
+            %move = botScan(index) * 0.3;
+            move = 0;
+        end
     end
     
     turned(n)  = turn;
@@ -426,9 +459,9 @@ if botSim.debug()
     %hold off; % the drawMap() function will clear the drawing when hold is off
     botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
     botSim.drawBot(30,'g'); % draw robot with line length 30 and green
-    %for i =1:num
-    %   particles(i).drawBot(3); %draw particle with line length 3 and default color
-    %end
+%     for i =1:num
+%       particles(i).drawBot(3); %draw particle with line length 3 and default color
+%     end
     drawnow;
 end
 plot(target(1), target(2), '*');
@@ -493,7 +526,7 @@ arrived = 0; % whether arrive at target or not
 %     end
 % end
 
-current_scans = 4;
+current_scans = 12;
 particles(300).setBotPos([estimate_x_2 estimate_y_2]);
 particles(300).setBotAng(0);
 particles(300).setScanConfig(generateScanConfig(particles(300), current_scans));
@@ -676,9 +709,10 @@ while (arrived == 0)
         veMove1 = evaluatePath(veMove(:,2),veMove(:,1))
         
         final_move = final_path(veMove1);
-        final(:, 1) = final_move(find(final_move(:, 1) ~= 0));
-        final(:, 2) = final_move(find(final_move(:, 2) ~= 0), 2);
-        final
+%         final(:, 1) = final_move(find(final_move(:, 1) ~= 0));
+%         final(:, 2) = final_move(find(final_move(:, 2) ~= 0), 2);
+%         final
+        final = evaluatePath(final_move(:,1), final_move(:,2))
 %         zero_ = [0];
 %         [c ind]=setdiff(final_move(:, 1), zero_);
 %         [c ind]=setdiff(final_move(:, 2), zero_);

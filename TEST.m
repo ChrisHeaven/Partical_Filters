@@ -24,22 +24,26 @@ mS =NXTMotor('A');
 
 %% Testing
 sensorT = -1;
+% m = ultra_scan(360)
 OpenUltrasonic(USS);
-   m = ultra_scan(4)
-   m = ultra_scan(4);
+%    m = ultra_scan(4)
+%    m = ultra_scan(4);
 % move_direct(5,1);
 % 
 % speedUp(5,1);
-% pause(0.1);
-% for i = 1 :10
+ pause(0.1);
+% for i = 1 :9
 %     sensorT = mod(i ,2);
-% %     m(i) = GetUltrasonic(USS);
-%     m = ultra_scan(4)
+%      m(i) = GetUltrasonic(USS);
+%      turn_sensor(5,1);
+%    m = ultra_scan(4)
 %     n(:,i) = m;
 % end
-% n
+% % n
 % m
-% CloseSensor(USS);
+% pause(0.1);
+m = GetUltrasonic(USS)
+CloseSensor(USS);
 %   turn(135,-1);
 %   move_direct(0,1)
 

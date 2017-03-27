@@ -1,11 +1,14 @@
 function [path] = evaluatePath(turning, moving)   % direction 1:turn right, -1:turn left
 heading = find(turning ~= 0);
+if (turning(1) == 0)
+    heading = [1;heading];
+end
 Size = size(heading);
 counter = Size(1);
 move = 0;
 
 for i = 1 : counter 
-  
+   heading(i);
    path(i,1) = turning(heading(i));
    if i <= (counter - 1)
        startpoint = heading(i);
