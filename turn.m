@@ -10,8 +10,12 @@ function flag = turn(degree,direction) %direction 1:right -1:left
         end    
             
         if degree > 180
-            degree = 360 - degree;
-            direction = 1;
+            degree = 360 - degree
+            if degree == 0
+                degree = 1;
+            end
+            
+            direction = direction * -1;
         end
     
          

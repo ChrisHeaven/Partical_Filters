@@ -97,7 +97,7 @@ for i = 1:16
 end
 better_angle
 
-botSim.turn(better_angle);
+botSim.turn(better_angle/180*pi);
     if botSim.debug()
         hold off; % the drawMap() function will clear the drawing when hold is off
         botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
@@ -155,7 +155,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     best_particle = index(1);
     
     for i = 1:num / 5
-        score_half(i, 1) = weight(i)^2;
+        score_half(i, 1) = weight(i)^3;
     end
     sum_score_half = sum(score_half);
     
@@ -169,7 +169,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     count = 1;
     
     for i = 1:num / 5
-            particles_num(i, :) = fix(weight(index(i))^2 * num * (1 / sum_score_half));
+            particles_num(i, :) = fix(weight(index(i))^3 * num * (1 / sum_score_half));
             new_pos_x = (particles_pos(1, i) - 2.5 + rand(1, particles_num(i, :)) * 5);
             new_pos_y = (particles_pos(2, i) - 2.5 + rand(1, particles_num(i, :)) * 5);
         
@@ -188,22 +188,27 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     %% Write code to check for convergence  
     for i = 1:num
         particles_pos(:, i) = getBotPos(particles(i));
+        particles_ang(:, i) = getBotAng(particles(i));
     end
 
     % one way of estimate the position of real robot    
-    sort_x = sort(particles_pos(1, :), 'ascend');
+    [sort_x, index_] = sort(particles_pos(1, :), 'ascend');
     sort_y = sort(particles_pos(2, :), 'ascend');
+    %sort_ang = sort(particles_ang, 'ascend');
 
     count_3 = 0;
     for i = fix(45 * num/100):fix(55 * num/100)
         count_3 = count_3 + 1;
         x_(1, count_3) = sort_x(i);
         y_(1, count_3) = sort_y(i);
+        ang_(1, count_3) = particles_ang(index_(i));
     end
     estimate_x_2 = mean(x_(1, :));
     estimate_y_2 = mean(y_(1, :));
+    estimate_ang = mean(ang_(1, :)) / pi * 180
 
     particles_pos_(:, 1) = getBotPos(particles(best_particle));
+    par_angle = getBotAng(particles(best_particle)) /pi *180
     estimate_x_4 = particles_pos_(1, 1);
     estimate_y_4 = particles_pos_(2, 1);
 
@@ -252,22 +257,22 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     backup_turn = (backup_index - 1) * 2 * 180 / scans;
     backup_move = backup_distance * 0.3;
     
-    danger = 0;
-    if botScan(1) + botScan(3) > botScan(2) + botScan(4) && botScan(1) + botScan(3) > 105 && botScan(1) + botScan(3) < 115
-        if botScan(2) + botScan(4) > 38 && botScan(2) + botScan(4) < 47
-            botScan(2) = 33;
-            botScan(4) = 33;
-            danger = 1;
-        end
-    else
-        if botScan(2) + botScan(4) > botScan(1) + botScan(3) && botScan(2) + botScan(4) > 105 && botScan(2) + botScan(4) < 115
-            if botScan(1) + botScan(3) > 38 && botScan(1) + botScan(3) < 47
-                botScan(1) = 33;
-                botScan(3) = 33;
-                danger = 1;
-            end
-        end
-    end
+%     danger = 0;
+%     if botScan(1) + botScan(3) > botScan(2) + botScan(4) && botScan(1) + botScan(3) > 105 && botScan(1) + botScan(3) < 115
+%         if botScan(2) + botScan(4) > 38 && botScan(2) + botScan(4) < 47
+%             botScan(2) = 33;
+%             botScan(4) = 33;
+%             danger = 1;
+%         end
+%     else
+%         if botScan(2) + botScan(4) > botScan(1) + botScan(3) && botScan(2) + botScan(4) > 105 && botScan(2) + botScan(4) < 115
+%             if botScan(1) + botScan(3) > 38 && botScan(1) + botScan(3) < 47
+%                 botScan(1) = 33;
+%                 botScan(3) = 33;
+%                 danger = 1;
+%             end
+%         end
+%     end
     
     
     %%Solving hitting wall problem
@@ -315,11 +320,11 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     botScan
 
     
-    if danger == 1
-        [max_distance, max_index] = max(botScan); 
-        turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
-        move = max_distance * 0.6 * rand();
-    else
+%     if danger == 1
+%         [max_distance, max_index] = max(botScan); 
+%         turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
+%         move = max_distance * 0.6 * rand();
+%     else
         if rand() < 0.76 % prefer to move in the maximum direction
             [max_distance, max_index] = max(botScan); 
             turn = (max_index - 1) * 2 * pi / scans; % orientate towards the max distance
@@ -330,7 +335,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
             %move = botScan(index) * 0.3;
             move = 0;
         end
-    end
+%     end
     
     turned(n)  = turn;
     if checkTurn(turned)
@@ -354,9 +359,9 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         hold off; % the drawMap() function will clear the drawing when hold is off
         botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
         botSim.drawBot(30,'g'); % draw robot with line length 30 and green
-%         for i =1:num
-%            particles(i).drawBot(3); %draw particle with line length 3 and default color
-%         end
+        for i =1:num
+           particles(i).drawBot(3); %draw particle with line length 3 and default color
+        end
         drawnow;
     end
 end
@@ -573,7 +578,7 @@ arrived = 0; % whether arrive at target or not
 %     end
 % end
 
-current_scans = 12;
+current_scans = 16;
 particles(300).setBotPos([estimate_x_2 estimate_y_2]);
 particles(300).setBotAng(0);
 particles(300).setScanConfig(generateScanConfig(particles(300), current_scans));
@@ -765,6 +770,6 @@ while (arrived == 0)
 %         [c ind]=setdiff(final_move(:, 2), zero_);
 %         final_move = final_move(sort(ind))
         
-        Extratime = numberofMovingStep1 * 5 + 4 + size(final, 1) * 2
+        Extratime = 15 + numberofMovingStep1 * 5 + 15 + size(final, 1) * 2
     end
 end

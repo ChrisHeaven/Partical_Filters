@@ -1,6 +1,7 @@
 function current_degree = turn_sensor(degree, direction)   % direction 1:turn right, -1:turn left
-    mS = NXTMotor('A'); 
-    mS.Power = 80 * direction;
+    global mS
+   
+    mS.Power = 30 * direction;
     mS.TachoLimit = degree;
     mS.Stop('brake');
     mS.SendToNXT();

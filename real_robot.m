@@ -53,8 +53,8 @@ botSim.setMap(modifiedMap);
 adminKey = rand(1);
 OpenUltrasonic(USS);
 
-startPositions =  [20,20; 30,20; 50,70 ]; %These will change
-targetPositions = [80,80; 100,20; 230,70]; %These will change
+targetPositions =  [20,20; 30,20; 50,70 ]; %These will change
+startPositions = [50,20; 100,20; 230,70]; %These will change
 botSim.setBotPos(startPositions(1, :),adminKey);
 target = targetPositions(1, :);
 
@@ -113,6 +113,77 @@ for i = 1:num
     past_score(i, 1) = 1/num;
 end
 
+
+
+%% for special angle
+% degree = round(360 / 24);
+% maxDegree =  18 * degree;
+% OpenUltrasonic(USS);
+% for i = 1: 18
+%    pause(0.01);
+%    pre_scan(i) = GetUltrasonic(USS);
+%    turn_sensor(degree , 1);
+% %    maxDegree  = maxDegree + degree;
+%    
+% end
+% turn_sensor(maxDegree, -1);
+% 
+% for i = 19 : 24
+%    pre_scan(i) =  i * 10; 
+% end
+
+% botSim.setScanConfig(generateScanConfig(botSim, 24));
+
+% pre_scan = ultra_scan(12);
+% sensorT = sensorT * -1;
+% [scan_, number] = sort(pre_scan);
+% better_angle = 0;
+% for i = 1:24
+%     diff1 = abs(pre_scan(mod(number(i), 24) + 1) - scan_(i));
+%     index = number(i) - 1;
+%     if index == 0
+%         index = 24;
+%     end
+%     diff2 = abs(pre_scan(index) - scan_(i));
+%     
+%     if diff1 < diff2
+%         min_diff = diff1;
+%         max_diff = diff2;
+%         flag = 1;
+%     else
+%         min_diff = diff2;
+%         max_diff = diff1;
+%         flag = 2;
+%     end
+%     
+%     if min_diff <= 3 && max_diff <= 8
+%         if min_diff <= 2 && flag == 1
+%             better_angle = (number(i) - 1) * 360 / 24 + 360/48;
+%         else
+%             if min_diff <= 2 && flag == 2
+%                 better_angle = (number(i) - 1) * 360 / 24 - 360/48;
+%             else
+%                 if min_diff > 2
+%                     better_angle = (number(i) - 1) * 360 / 24;
+%                 end
+%             end
+%         end
+%         break;
+%     end
+% end
+% better_angle;
+% % turn_sensor(336, -1);
+% turn(better_angle, -1);
+%  
+%     if botSim.debug()
+%         hold off; % the drawMap() function will clear the drawing when hold is off
+%         botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
+%         botSim.drawBot(30,'g'); % draw robot with line length 30 and green
+%         drawnow;
+%     end
+%%  End of the specail angle
+
+
 while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     n = n + 1; % increment the current number of iterations
     
@@ -157,7 +228,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     best_particle = index(1);
     
     for i = 1:num / 5
-        score_half(i, 1) = weight(i);
+        score_half(i, 1) = weight(i)^2;
     end
     sum_score_half = sum(score_half);
     
@@ -171,7 +242,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     count = 1;
     
     for i = 1:num / 5
-            particles_num(i, :) = fix(weight(index(i)) * num * (1 / sum_score_half));
+            particles_num(i, :) = fix(weight(index(i))^2 * num * (1 / sum_score_half));
             new_pos_x = (particles_pos(1, i) - 2.5 + rand(1, particles_num(i, :)) * 5);
             new_pos_y = (particles_pos(2, i) - 2.5 + rand(1, particles_num(i, :)) * 5);
         
@@ -190,6 +261,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     %% Write code to check for convergence  
     for i = 1:num
         particles_pos(:, i) = getBotPos(particles(i));
+        particles_ang(:, i) = getBotAng(particles(i));
     end
 
     % one way of estimate the position of real robot    
@@ -206,6 +278,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     estimate_y_2 = mean(y_(1, :));
     
     particles_pos_(:, 1) = getBotPos(particles(best_particle));
+    par_angle = getBotAng(particles(best_particle)) /pi *180
     estimate_x_4 = particles_pos_(1, 1);
     estimate_y_4 = particles_pos_(2, 1);
 
@@ -232,6 +305,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     stdev_y = std(y_(1, :));
     
     if stdev_x < convergence_threshold && stdev_y < convergence_threshold
+        NXT_PlayTone(440, 500);
         break;       % particles has converged so break out of while loop immediately before any movement
     end
     
@@ -254,7 +328,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     
     %%Solving hitting wall problem
     [min_distance, min_index] = min (botScan);
-    if min_distance < 23 % 22 * 3 ^ (1/2)
+    if min_distance < 31 % 22 * 3 ^ (1/2)
         %botScans = botScan;
         increase_number = floor(scans / 4);
         for i = 1 : increase_number
@@ -272,7 +346,7 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         botScan(min_index) = 0;
     end
     
-    if rand() < 0.76 % prefer to move_direct in the maximum direction
+    if rand() < 0.56 % prefer to move_direct in the maximum direction
         [max_distance, max_index] = max(botScan); 
         
         turning = (max_index - 1) * 2 * 180 / scans; % orientate towards the max distance
@@ -299,9 +373,9 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     for i =1:num % for all the particles. 
         particles(i).turn(turning); % turn the particle in the same way as the real robot
         particles(i).move(move); % move_direct the particle in the same way as the real robot
-        if particles(i).insideMap() == 0
-           particles(i).randomPose(0);
-        end
+%         if particles(i).insideMap() == 0
+%            particles(i).randomPose(0);
+%         end
     end
     
     %% Drawing
@@ -310,9 +384,9 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
         hold off; % the drawMap() function will clear the drawing when hold is off
          botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
 %         .drawBot(30,'g'); % draw robot with line length 30 and green
-        for i =1:num
-           particles(i).drawBot(3); %draw particle with line length 3 and default color
-        end
+%         for i =1:num
+%            particles(i).drawBot(3); %draw particle with line length 3 and default color
+%         end
         drawnow;
     end
 end
@@ -480,13 +554,15 @@ mapArray
 arrived = 0; % whether arrive at target or not 
 
 %% Set a particle at the position of real robot with 0 degree and take a new ultrascan
-current_scans = 12;
+current_scans = 4;
 particles(300).setBotPos([estimate_x_2 estimate_y_2]);
 particles(300).setBotAng(0);
 particles(300).setScanConfig(generateScanConfig(particles(300), current_scans));
 dis = particles(300).ultraScan();
 %.setScanConfig(generateScanConfig(, current_scans));
-
+% if sensorT == -1
+%    turn_sensor(135,-1); 
+% end   
 current_dis = ultra_scan(current_scans);
 
 %% Calculate the score of every direction of the real robot to calibrate it with the 0-degree particle
@@ -497,6 +573,17 @@ end
 
 [scores(1, 1), angle_gap] = max(scores(1, :));
 bot_angle = - angle_gap * 2 * 180/current_scans;
+% diff_ang = abs(par_angle - bot_angle);
+% diff_ang2 = 360 - abs(bot_angle - par_angle);
+% 
+% if abs(par_angle) < 360
+% if (diff_ang < 90 || diff_ang2 < 90)
+%     bot_angle = bot_angle;
+% else
+%     bot_angle = bot_angle + 180;
+% end
+% end
+
 
 turn(bot_angle,-1);% turn the robot to an angle which is close to 0 degree
 %.turn(bot_angle); 
