@@ -58,6 +58,53 @@ for i = 1:num
     past_score(i, 1) = 1/num;
 end
 
+botSim.setScanConfig(generateScanConfig(botSim, 16));
+pre_scan = botSim.ultraScan();
+[scan_, number] = sort(pre_scan);
+better_angle = 0;
+for i = 1:16
+    diff1 = abs(pre_scan(mod(number(i), 16) + 1) - scan_(i));
+    index = number(i) - 1;
+    if index == 0
+        index = 16;
+    end
+    diff2 = abs(pre_scan(index) - scan_(i));
+    
+    if diff1 < diff2
+        min_diff = diff1;
+        max_diff = diff2;
+        flag = 1;
+    else
+        min_diff = diff2;
+        max_diff = diff1;
+        flag = 2;
+    end
+    
+    if min_diff <= 3 && max_diff <= 8
+        if min_diff <= 2 && flag == 1
+            better_angle = (number(i) - 1) * 360 / 16 + 360/32;
+        else
+            if min_diff <= 2 && flag == 2
+                better_angle = (number(i) - 1) * 360 / 16 - 360/32;
+            else
+                if min_diff > 2
+                    better_angle = (number(i) - 1) * 360 / 16;
+                end
+            end
+        end
+        break;
+    end
+end
+better_angle
+
+botSim.turn(better_angle);
+    if botSim.debug()
+        hold off; % the drawMap() function will clear the drawing when hold is off
+        botSim.drawMap(); % drawMap() turns hold back on again, so you can draw the bots
+        botSim.drawBot(30,'g'); % draw robot with line length 30 and green
+        drawnow;
+    end
+
 while(converged == 0 && n < maxNumOfIterations) %particle filter loop
     n = n+1; % increment the current number of iterations
     %get a scan from the real robot.
@@ -65,16 +112,16 @@ while(converged == 0 && n < maxNumOfIterations) %particle filter loop
 %     for i = 1:size(botScan)
 %         botScan(i) = botScan(i) - 15;
 %     end
-    if n == 1
-        botSim.setScanConfig(generateScanConfig(botSim, 8));
-        botScan = botSim.ultraScan();
-%         [backup_distance, backup_index] = max(botScan); 
+%     if n == 1
+%         botSim.setScanConfig(generateScanConfig(botSim, 8));
+%         botScan = botSim.ultraScan();
+% %         [backup_distance, backup_index] = max(botScan); 
+%         botSim.setScanConfig(generateScanConfig(botSim, scans));
+%         botScan = botSim.ultraScan();
+%     else
         botSim.setScanConfig(generateScanConfig(botSim, scans));
         botScan = botSim.ultraScan();
-    else
-        botSim.setScanConfig(generateScanConfig(botSim, scans));
-        botScan = botSim.ultraScan();
-    end 
+%     end 
     %% Write code for updating your particles scans
     for i = 1:num
         %past_score(i, 1) = 1/num;
